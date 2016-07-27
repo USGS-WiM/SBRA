@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SBRA</title>
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge;" />
+        <link rel="shortcut icon" href="favicon.ico"/>
+        <!--<link rel="stylesheet" href="bower_components/esri/themes/claro/claro.css">-->
+
+        <!-- build:css styles/vendor.css -->
+        <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="/bower_components/bootstrap-sidebar/dist/css/sidebar.css" />
+        <link rel="stylesheet" href="/bower_components/bootstrap-map-js/dist/css/bootstrapmap.min.css" />
+        <link rel="stylesheet" href="/bower_components/fontawesome/css/font-awesome.min.css"/>
+        <link rel="stylesheet" href="/bower_components/themify-icons/css/themify-icons.css"/>
+        <!-- endbuild -->
+
+
+        <!-- CSS for the mapping components -->
+        <link rel="stylesheet" href="http://js.arcgis.com/3.13/dijit/themes/claro/claro.css">
+        <link rel="stylesheet" href="http://js.arcgis.com/3.13/esri/css/esri.css">
+
+        <!-- build:css styles/main.css -->
+        <link rel="stylesheet" href="styles/main.css">
+        <!-- endbuild -->
+
+
+        <link rel="stylesheet" href="styles/base.css">
+
+        <!-- build:js scripts/vendor.js -->
+        <script src="/bower_components/jquery/dist/jquery.js"></script>
+        <script src="/bower_components/jquery.nicescroll/jquery.nicescroll.js"></script>
+        <script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="/bower_components/bootstrap-sidebar/dist/js/sidebar.js"></script>
+        <script src="/bower_components/bootstrap-confirmation2/bootstrap-confirmation.min.js"></script>
+        <!-- endbuild -->
+
+        <script src="http://js.arcgis.com/3.13/"></script>
+
+        <!-- bs-confirm is a small, single js doc library used as confirm on removeBookmarksButton. distinct from bootstrap-confirmation. -->
+        <!-- build:js scripts/combined.js -->
+        <script src="scripts/bs-confirm.js"></script>
+        <script src="scripts/utilities.js"></script>
+        <script src="scripts/layers.js"></script>
+        <script src="scripts/core.js"></script>
+        <!-- endbuild -->
+
+
+</head>
+    <body class="claro">
+
+    <div id="navbar" class="navbar navbar-static navbar-default navbar-fixed-top navbar-dark">
+      <div class="container-fluid">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle toggle-left hidden-md hidden-lg" data-toggle="sidebar" data-target=".sidebar-left">
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="http://usgs.gov">
+                  <img id="usgsLogo" alt="USGS logo" height="38px" src="images/USGS_ID_white.png">
+                  <!--<span class='hidden-xs' style='font-size:20px;display:inline-block;'>&nbsp;&nbsp;Western Lake Erie Restoration Assessment (WLERA)</span>-->
+              </a>
+              <p class="navbar-text hidden-xs navbar-title">Saginaw Bay Restoration Assessment</p>
+
+          </div>
+
+          <button id="geosearchNav" type="button" class="btn btn-primary navbar-btn pull-right">
+              <span class="glyphicon glyphicon-search"></span>
+              <span id="geosearchButtonText"> Geosearch</span>
+          </button>
+
+          <button id="printNavButton" type="button" class="btn btn-primary navbar-btn pull-right">
+              <span class="glyphicon glyphicon-print"></span>
+              <span id="printButtonText"> Print</span>
+          </button>
+
+          <button id="shareNavButton" type="button" class="btn btn-primary navbar-btn pull-right">
+              <span class="glyphicon glyphicon glyphicon-share"></span>
+              <span id="shareButtonText"> Share</span>
+          </button>
+
+          <button id="aboutNav" class="btn btn-default navbar-btn pull-right">
+              <i class="fa fa-question-circle"></i><span id="aboutButtonText">&nbsp;&nbsp;About</span>
+          </button>
+
+      </div>
+    </div>
+
+    <div class="modal fade" id="disclaimerModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
+                    <!--<h4 class="modal-title">{Event Name} Data Viewer</h4>-->
+                    <h4>Saginaw Bay Restoration Assessment Web App</h4><i class="fa fa-exclamation-triangle fa-lg"></i> Please read the following message before continuing.
+                </div>
+                <div class="modal-body">
+                    <!--<h4>Welcome to the {Event Name} Data Viewer</h4><b>Please read the following message before continuing.</b>-->
+                    <p>Data are provisional and are subject to revision until thoroughly reviewed and approved.</p>
+                    <p>Provisional data may be inaccurate due to input data or physical changes on the landscape. Subsequent review based on field inspections and analysis may result in significant revisions to the data.</p>
+                    <p>The data are being provided to meet the need for timely best science and are released on the condition that neither the USGS nor the U.S. Government may be held liable for any damages resulting from authorized or unauthorized use of the information. </p>
+                    <p>Data users are cautioned to consider carefully the provisional nature of the information before using it for decisions that concern personal or public safety or the conduct of business that involves substantial monetary or operational consequences.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+
+  <div id="aboutModal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog  modal-lg">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button class="close" type="button" data-dismiss="modal" aria-hidden="true" style="color:gray;">&times;</button>
+                  <h4 class="modal-title">Saginaw Bay Restoration Assessment (SBRA)</h4>
+              </div>
+              <div id="aboutModalBody" class="modal-body">
+                  <ul class="nav nav-tabs" id="aboutModalTabs">
+                      <li role="presentation" class="active"><a id="aboutTab" href="#aboutTabPane" data-toggle="tab"><i class="fa fa-question-circle"></i>&nbsp;About the application</a></li>
+                      <li role="presentation"><a id="disclaimerTab" href="#disclaimerTabPane" data-toggle="tab"><i class="fa fa-exclamation-circle"></i>&nbsp;Disclaimer</a></li>
+                      <li role="presentation"><a id="contactTab" href="#contactTabPane" data-toggle="tab"><i class="fa fa-envelope"></i>&nbsp;Contact</a></li>
+                  </ul>
+                  <div class="tab-content">
+                      <div role="tabpanel" class="tab-pane active about-tab-content" id="aboutTabPane"></br>
+
+                          <div class="wetland-pic tabText">
+                              <p>The Saginaw Bay Restoration Assessment (SBRA) model was co-developed by investigators in the Environmental Studies Program at the New College of Florida in
+                              Sarasota, Florida and the USGS - Great Lakes Science Center in Ann Arbor, Michigan. The web mapping application for interfacing with the SBRA model was developed
+                              by programmers at the Wisconsin Internet Mapping Group.</p>
+
+                              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+                                  pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+
+                              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+                                  pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+
+                              <p>The development of the SBRA has been supported by the Great Lakes Restoration Initiative, the Upper Midwest and Great Lakes Landscape Conservation Cooperative and the University of Michigan Water Center.</p>
+
+                          </div>
+                          <br>
+
+                          <span>
+                              <img src="images/USGS_ID_green.png" alt="..."  style="width: 200px" class="aboutTabLogos">
+                              <img src="images/NCF_logo.jpg" alt="..."  style="width: 200px" class="aboutTabLogos">
+                              <img src="images/glri-logo.jpg" alt="..."  style="width: 200px" class="aboutTabLogos">
+                              <img src="images/Logo_UMGL.jpg" alt="..."  style="width: 200px" class="aboutTabLogos">
+                          </span>
+
+
+                      </div>
+                      <div role="tabpanel" class="tab-pane tabText" id="disclaimerTabPane"></br>
+                          <h3>Data Limitations</h3>
+                          <p>Data are provisional and are subject to revision until thoroughly reviewed and approved.</p>
+                          <p>Provisional data may be inaccurate due to input data or physical changes on the landscape. Subsequent review based on field inspections and analysis may result in significant revisions to the data.</p>
+                          <p>The data are being provided to meet the need for timely best science and are released on the condition that neither the USGS nor the U.S. Government may be held liable for any damages resulting from authorized or unauthorized use of the information. </p>
+                          <p>Data users are cautioned to consider carefully the provisional nature of the information before using it for decisions that concern personal or public safety or the conduct of business that involves substantial monetary or operational consequences.</p>
+
+                      </div>
+                      <div role="tabpanel" class="tab-pane tabText" id="contactTabPane"></br>
+                          <p>
+                              <label>New College of Florida</label><br>
+                              <span>Justin Saarinen, Geographer<br>jsaarinen@ncf.edu</span>
+                          </p>
+
+                          <p>
+                              <label>USGS Great Lakes Science Center</label><br>
+                              <span>Kurt Kowalski, Wetland Ecologist<br>kkowalski@usgs.gov</span>
+                          </p>
+
+                          <p>
+                              <label>USGS WiM</label><br>
+                              <span>Blake Draper, Software Developer<br>bdraper@usgs.gov</span><br><br>
+                              <span>Hans Vraga, Project Manager<br>hvraga@usgs.gov</span>
+                          </p>
+
+                          <p><h4><a href="https://lccnetwork.org/group/coastal-conservation-working-group" target="_blank">Upper Midwest and Great Lakes LCC Coastal Conservation Working Group</a></h4></p>
+
+
+                          <img src="images/USGS_ID_green.png" alt="..."  style="width: 200px">
+                          <img src="images/NCF_logo.jpg" alt="..."  style="width: 200px">
+                          <img src="images/glri-logo.jpg" alt="..."  style="width: 200px">
+                          <img src="images/Logo_UMGL.jpg" alt="..."  style="width: 200px">
+
+
+                      </div>
+                  </div>
+              </div>
+
+              <div class="modal-footer">
+                  <p style="color:black; margin-left:35px;text-align:left">
+                      For more information about the SBRA web application please contact <a href="http://wim.usgs.gov/" target="_blank"><img src="images/wimvectorxs.png" id="wim_logo"></a> or visit Contact tab for project info.
+                  </p>
+                  <button class=" btn btn-default close" type="button" data-dismiss="modal" aria-hidden="true" style="color:gray;" class="btn btn-default">Close</button>
+              </div>
+          </div><!-- /.modal-content -->
+      </div> <!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+
+  <div class="modal fade overflow-y-hidden" id="geosearchModal" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                  <h4 class="modal-title">Geosearch</h4>
+              </div>
+              <div class="modal-body">
+                  <div class="form-group">
+                      <div id="geosearch"><div id="sapi_searchTextBoxDiv"></div></div>
+                  </div>
+                  <form id="geosearch-form" class="form-inline">
+                      <div class="checkbox">
+                          <label>
+                              <input id="chkExtent" type="checkbox"> Search in Map Only
+                          </label>
+                      </div>
+                      <button id="btnGeosearch" type="button" class="btn btn-success btn-fixed" data-dismiss="modal"> Go </button>
+                      <button id="btnDismiss" type="submit" class="btn btn-default btn-fixed" data-dismiss="modal">Dismiss</button>
+                  </form>
+              </div>
+          </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+  </div>
+
+  <div class="modal fade overflow-y-hidden" id="printModal" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                  <h4 class="modal-title"><span class="glyphicon glyphicon-print"></span> Print Map</h4>
+              </div>
+              <div id="printModalBody" class="modal-body">
+
+
+                  <form id="print-title-form" class="form-group" onSubmit="return false;">
+                      <label for="printTitle">Title </label>
+                      <input class="form-control" id="printTitle" placeholder="Enter a title for your printout">
+                  </form>
+
+                  <form id="print-form" class="form-inline">
+                      <button id="printExecuteButton" type="button" class="btn btn-success btn-fixed" data-loading-text="Printing..." > Print </button>
+                      <button id="printDismissButton" class="btn btn-default btn-fixed" data-dismiss="modal"> Dismiss</button>
+                  </form>
+
+                  <div id="printJobsDiv" style="margin-top: 5px;"><label>Print Jobs </label><p class="toRemove"> No print jobs yet</p></div>
+              </div>
+          </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+  </div>
+
+  <div class="modal fade overflow-y-hidden" id="shareModal" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                  <h4 class="modal-title"><span class="glyphicon glyphicon-link"></span> Create sharing link</h4>
+              </div>
+              <div id="shareModalBody" class="modal-body">
+                  <p>Create a short, shareable link for your current extent using Bitly</p>
+                  <button id="showShortLinkButton" type="button" class="btn btn-default btn-fixed btn-sm btn-share"> Generate shortened Bitly link</button><br>
+                  <span id="bitlyURL"></span>
+                  <hr>
+                  <button id="showFullLinkButton" type="button" class="btn btn-default btn-fixed btn-sm btn-share"> Display full link</button><br>
+                  <span id="fullShareURL"></span>
+              </div>
+          </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+  </div>
+
+  <div class="modal fade overflow-y-hidden" id="bookmarkModal" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                  <h4 class="modal-title"><span class="glyphicon glyphicon-bookmark"></span> Add Map Bookmark</h4>
+              </div>
+              <div id="bookmarkModalBody" class="modal-body">
+
+                  <p>A bookmark will save your current map extent. Bookmarks are saved to local storage on your device for use in future sessions.</p>
+
+                  <form id="bookmark-title-form" class="form-group" onSubmit="return false;">
+                      <label for="bookmarkTitle">Map bookmark name </label>
+                      <input class="form-control" id="bookmarkTitle" placeholder="Enter a name for your bookmark">
+                  </form>
+
+                  <form id="bmSave-form" class="form-inline">
+                      <button id="bookmarkSaveButton" type="button" class="btn btn-success btn-fixed" > Save </button>
+                      <button id="bookmarkDismissButton" type="submit" class="btn btn-default btn-fixed" data-dismiss="modal"> Dismiss</button>
+                  </form>
+
+                  <div id="bmAlert" class="alert alert-danger" role="alert"><i class="fa fa-exclamation-circle"></i> Please enter a name for your bookmark.</div>
+
+
+              </div>
+          </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+  </div>
+
+  <div class="modal fade overflow-y-hidden" id="zonalStatsModal" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                  <h4 class="modal-title"><i class="fa fa-clone"></i> Summarized Restoration Assessment Index Values</h4>
+              </div>
+              <div id="zonalStatsModalBody" class="modal-body">
+                  <table id="zonalStatsTable" class="table table-condensed table-striped table-hover">
+                  </table>
+              </div>
+          </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+  </div>
+
+  <!-- Begin page content -->
+  <div class="container-fluid keepit100">
+      <div class="row keepit100">
+          <div id="sidebar" class="col-xs-11 col-sm-10 col-md-3 col-lg-2 sidebar sidebar-left sidebar-animate sidebar-md-show no-col-padding">
+              <div class="panel panel-default wim-sidebar-panel">
+                  <div class="panel-heading" id="layersPanelHeader">
+                      <h4 class="panel-title">
+                          <a class="collapsed" data-toggle="collapse" href="#layersPanel" aria-expanded="true" aria-controls="layersPanel">Map Layers</a>
+                      </h4>
+                  </div>
+                  <div id="layersPanel" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="layersPanelHeader">
+                      <div id="restorationModelGroupHeading" class="groupHeading">
+                          <label>Restoration Model</label>
+                      </div>
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="normalized" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Normalized Restoration Index<span id="opacitynormalized" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                      </div>
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="parameters" class="btn btn-default groupToggle" type="button" data-toggle="collapse" data-target="#parametersGroup"  aria-expanded="false" aria-controls="collapseExample" style="font-weight: bold;text-align: left"><!--<i class="checkBoxIcon fa fa-square-o"></i>-->&nbsp;&nbsp;Parameters&nbsp;<i class="chevron fa fa-chevron-right pull-right"></i></button>
+                      </div>
+                      <div class="collapse" id="parametersGroup">
+                          <div id="parametersGroupButtons" class="btn-group-vertical sub1" style="cursor: pointer;" data-toggle="buttons">
+                              <button id="waterMask" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Water Mask<span id="opacitywaterMask" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="hydroperiod" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Hydroperiod<span id="opacityhydroperiod" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="wetsoils" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Wetsoils<span id="opacitywetsoils" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="flowline" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Flowline<span id="opacityflowline" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="conservedLands" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Conserved Lands<span id="opacityconservedLands" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="imperviousSurfaces" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Impervious Surfaces<span id="opacityimperviousSurfaces" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                              <button id="landuse" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Landuse<span id="opacitylanduse" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                          </div>
+                      </div>
+                      <div id="referenceGroupHeading" class="groupHeading">
+                          <label>Reference</label>
+                      </div>
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="studyArea" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Study Area<span id="opacitystudyArea" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span></button>
+                      </div>
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="aerials" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Oblique Aerial Imagery<span id="opacityaerials" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span><span class="glyphicon glyphicon-search pull-right zoomto"></span></button>
+                      </div>
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="GLRIWetlands" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;GLRI project areas<span id="opacityGLRIWetlands" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span><span class="glyphicon glyphicon-search pull-right zoomto"></span></button>
+                      </div>
+                      <!-->
+                      <div class="btn-group-vertical lyrTogDiv" style="cursor: pointer;" data-toggle="buttons">
+                          <button id="hydroCondition" class="btn btn-default groupToggle" type="button" data-toggle="collapse" data-target="#hydroConditionGroup"  aria-expanded="false" aria-controls="collapseExample" style="font-weight: bold;text-align: left"><!--<i class="checkBoxIcon fa fa-square-o"></i>-->&nbsp;&nbsp;Hydro Conditioning&nbsp;<i class="chevron fa fa-chevron-right pull-right"></i></button>
+                      </div>
+                      <div class="collapse groupCollapse" id="hydroConditionGroup">
+                          <div id="hydroConditionsGroupButtons" class="btn-group-vertical sub1" style="cursor: pointer;" data-toggle="buttons">
+                              <button id="culverts" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Culverts<span id="opacityculverts" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span><span class="glyphicon glyphicon-search pull-right zoomto"></span></button>
+                              <button id="degFlowlines" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Degree Flowlines<span id="opacitydegFlowlines" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span><span class="glyphicon glyphicon-search pull-right zoomto"></span></button>
+                              <button id="dikes" type="button" class="btn btn-default lyrTog" aria-pressed="true" style="font-weight: bold;text-align: left"><i class="checkBoxIcon fa fa-square-o"></i>&nbsp;&nbsp;Dikes<span id="opacitydikes" class="glyphspan glyphicon glyphicon-adjust pull-right opacity"></span><span class="glyphicon glyphicon-search pull-right zoomto"></span></button>
+                          </div>
+                      </div>
+                      <!-- need this useless div and label now to keep the buttons separate from basemaps panel toggle -->
+                      <div style="color: #ffffff"><label>000</label></div>
+                  </div>
+              </div>
+
+              <div class="panel panel-default wim-sidebar-panel">
+                  <div class="panel-heading" id="basemapsHeader">
+                      <h4 class="panel-title">
+                          <a data-toggle="collapse"  href="#basemapsPanel" aria-expanded="false" aria-controls="basemapsPanel">Basemaps</a>
+                      </h4>
+                  </div>
+                  <div id="basemapsPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="basemapsHeader">
+                      <div class="panel-body collapse in">
+                          <button id="btnStreets" class="btn btn-default basemapBtn equalize"><img class="basemapThumb" alt="" src="images/streets.jpg"><br class="basemapThumb">Streets</button>
+                          <button id="btnSatellite" class="btn btn-default basemapBtn equalize" ><img class="basemapThumb" alt="" src="images/satellite.jpg"><br class="basemapThumb">Satellite</button>
+                          <button id="btnTopo" class="btn btn-default basemapBtn equalize"><img class="basemapThumb" alt="" src="images/topo.jpg"><br class="basemapThumb">Topo</button>
+                          <button id="btnGray" class="btn btn-default basemapBtn equalize" ><img class="basemapThumb" alt="" src="images/gray.jpg"><br class="basemapThumb">Gray</button>
+                          <button id="btnOSM" class="btn btn-default basemapBtn equalize"><img class="basemapThumb" alt="" src="images/osm.jpg"><br class="basemapThumb">OSM</button>
+                          <button id="btnNatlMap" class="btn btn-default basemapBtn equalize"><img class="basemapThumb" alt="" src="images/national_map.jpg"><br class="basemapThumb">Nat'l Map</button>
+                      </div>
+                  </div>
+              </div>
+
+
+              <div class="panel panel-default wim-sidebar-panel">
+                  <div class="panel-heading" id="zonalStatsHeader">
+                      <h4 class="panel-title">
+                          <a data-toggle="collapse"  href="#zonalStatsPanel" aria-expanded="false" aria-controls="zonalStatsPanel">Area Summary Tool</a>
+                      </h4>
+                  </div>
+                  <div id="zonalStatsPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="zonalStatsHeader">
+                      <div class="panel-body collapse in">
+                          <p>Calculate restoration suitability statistics for a custom drawn area</p>
+                          <label for="customSelectBtnGroup">Custom Area</label><br>
+                          <div id="customSelectBtnGroup" class="btn-group " role="group" aria-label="..." style="padding-bottom: 5px">
+                              <button id="drawCustom" type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Draw custom area"><span class="ti-pencil-alt2"></span>&nbsp;Draw <span class="hidden-xs"></span></button>
+                              <button id="calculateStats" type="button" class="btn btn-success" data-toggle="tooltip" data-loading-text="<i class='fa fa-cog fa-spin'></i>&nbsp;Calculating..." data-placement="top" title="Calculate" disabled><i class="fa fa-cogs"></i>&nbsp;Calculate <span class="hidden-xs">Stats</span></button>
+                          </div>
+                          <br>
+                          <!--<label for="parcelSelectBtnGroup">Select Parcels</label><br>-->
+                          <!--<div id="parcelSelectBtnGroup" class="btn-group " role="group" aria-label="..." style="padding-bottom: 5px">-->
+                              <!--<button id="selectParcels" type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Click to select | Hold Shift to deselect"><span class="ti-plus"></span>&nbsp;&nbsp;Click <span class="hidden-xs"></span></button>-->
+                              <!--<button id="selectParcelsDraw" type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Draw polygon to select parcels"><span class="ti-pencil-alt2"></span>&nbsp;&nbsp;Draw <span class="hidden-xs"></span></button>-->
+                              <!--&lt;!&ndash;<button id="stopSelection" type="button" class="btn btn-warning" data-toggle="tooltip" data-placement="top" title="Stop selecting features"><i class="fa fa-stop"></i>&nbsp;&nbsp;Stop selecting</button>&ndash;&gt;-->
+                              <!--<button id="displayStats" type="button" class="btn btn-success" data-toggle="tooltip" data-placement="top" title="Display Stats" disabled><i class="fa fa-table"></i>&nbsp;Display <span class="hidden-xs">Stats</span></button>-->
+                          <!--</div>-->
+                          <br>
+                          <div class="btn-group" role="group" aria-label="..." style="padding-bottom: 5px">
+                            <button id="clearSelection" type="button" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="Clear entire selection"><i class="fa fa-times-circle"></i>&nbsp;&nbsp;Clear selection</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+
+
+              <div class="panel panel-default wim-sidebar-panel">
+                  <div class="panel-heading" id="bookmarksHeader">
+                      <h4 class="panel-title">
+                          <a data-toggle="collapse"  href="#bookmarksPanel" aria-expanded="false" aria-controls="bookmarksPanel">Bookmarks</a>
+                      </h4>
+                  </div>
+                  <div id="bookmarksPanel" class="panel-collapse collapse" role="tabpanel" aria-labelledby="bookmarksHeader">
+                      <div class="panel-body collapse in">
+                          <div class="panel panel-default">
+                              <table class="table table-hover">
+                                  <tbody id="bookmarkList"></tbody>
+                              </table>
+                          </div>
+                          <div class="btn-group " role="group" aria-label="...">
+                              <button id="addBookmarkButton" type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Add bookmark"><i class="fa fa-plus"></i></button>
+                              <button id="removeBookmarksButton" type="button" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Delete all user bookmarks"><i class="fa fa-trash"></i></button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <div id="sidebar-ornament" class="wetland-pic sidebar-pic-content">
+                  <p>Play around! This is an interactive web mapping application to help you make decisions about restoring coastal wetlands in Saginaw Bay.
+                  Turn layers on & off to understand how they relate to restoration decisions, scale in and out, change basemaps, and use the Area Summary Tool if you are interested in a particular area.</p>
+
+                  <p>The Great Lakes Restoration Initiative and the Upper Midwest and Great Lakes Landscape Conservation Cooperative supported the development of this website.</p>
+                  <img src="images/USGS_ID_white.png" alt="..."  style="width: 100px">
+                  <img src="images/NCF_4winds.png" alt="..."  style="width: 100px">
+                  <img src="images/glri-logo.jpg" alt="..." class="img-rounded" style="width: 100px">
+                  <img src="images/Logo_UMGL.jpg" alt="..."  class="img-rounded" style="width: 100px">
+              </div>
+
+              <div class="identification pull-right">powered by  <a href="http://wim.usgs.gov/" target="_blank">WiM</a></div>
+
+          </div>
+          <div class="col-md-9 col-lg-10 col-md-offset-3 col-lg-offset-2 no-col-padding keepit100">
+
+              <div id="mapDiv">
+
+                  <div id="legendElement" class="panel panel-default legendClass">
+                      <div id="legendHeading" class=" legendHeading" role="tab">
+                          <h4 class="panel-title">
+                              <a data-toggle="collapse" style="text-decoration: none"  href="#legendCollapse" aria-expanded="true" aria-controls="collapseOne">
+                                  <span class="glyphicon glyphicon-list"></span>
+                                  <span id="legendLabel">Legend</span>
+                              </a>
+                          </h4>
+                      </div>
+                      <div id="legendCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                          <div id="legendDiv" class="panel-body"></div>
+                      </div>
+                  </div>
+
+                  <div id="measurementElement" class="panel panel-default measurementClass">
+                      <div id="measurementHeading" class="measurementHeading" role="tab">
+                          <h4 class="panel-title">
+                              <a data-toggle="collapse" style="text-decoration: none"  href="#measurementCollapse" aria-expanded="true" aria-controls="collapseOne">
+                                  <!--<i class="fa fa-ellipsis-h"></i>-->
+                                  <span class="ti-ruler-alt"></span>
+                                  <span id="measureLabel">Measure</span>
+                              </a>
+                          </h4>
+                      </div>
+                      <div id="measurementCollapse" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                          <div id="measurementDiv" class="panel-body"></div>
+                          <span id="snappingLabel" style="font-size:smaller;padding:5px 5px;">Press <b>CTRL</b> to enable snapping.</span>
+                      </div>
+                  </div>
+              </div>
+
+              <div id="homeButton"></div>
+
+              <div id="locateButton"></div>
+
+              <div id="latLngScale" class="latLngScale">
+                  <span class="hover-content"> <b>Map scale </b></span>
+                  1:<span id="scale"></span> <br>
+                  <span class="hover-content"><b>Latitude</b></span>
+                  <span id="latitude">y</span> |
+                  <span class="hover-content"> <b>Longitude</b></span>
+                  <span id="longitude">x</span>
+                  <span id="mapCenterLabel"  class="hover-content"> (center)</span>
+              </div>
+
+
+          </div>
+          <div class="col-xs-7 col-sm-3 col-md-3 sidebar sidebar-right sidebar-animate"></div>
+      </div>
+  </div>
+  </body>
+</html>  
