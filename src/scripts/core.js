@@ -112,7 +112,7 @@ require([
         infoWindow: popup
     });
 
-    //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("http://wlera.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+    //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("http://glcwra.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
     esriConfig.defaults.geometryService = new GeometryService("http://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
     esri.config.defaults.io.corsEnabledServers.push("http://gis.wim.usgs.gov/");
 
@@ -266,7 +266,7 @@ require([
         var encodedShareQueryString = "%3Fxmax=" + currentMapExtent.xmax.toString() + "%26xmin=" + currentMapExtent.xmin.toString() + "%26ymax=" + currentMapExtent.ymax.toString() + "%26ymin=" + currentMapExtent.ymin.toString();
         //var cleanURL = document.location.href;
         //below line for local testing only. replace with above line for production
-        var cleanURL = "http://wlera.wim.usgs.gov/SBRA/";
+        var cleanURL = "http://glcwra.wim.usgs.gov/SBRA/";
         var shareURL = cleanURL + shareQueryString;
         var encodedShareURL = cleanURL + encodedShareQueryString;
         console.log("Share URL is:" + shareURL);
@@ -406,7 +406,7 @@ require([
     on(search,'search-results', function(e) {
         $('#geosearchModal').modal('hide');
     });
-    
+
     function printMap() {
         var printParams = new PrintParameters();
         printParams.map = map;
@@ -437,14 +437,14 @@ require([
             template.layoutOptions = {
                 "titleText": "Saginaw Bay Restoration Assessment - Provisional Data",
                 "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
-                "copyrightText": "This page was produced by the SBRA web application at wlera.wim.usgs.gov/sbra",
+                "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
                 "legendLayers": [legendLayer]
             };
         } else {
             template.layoutOptions = {
                 "titleText": userTitle + " - Provisional Data",
                 "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
-                "copyrightText": "This page was produced by the SBRA web application at wlera.wim.usgs.gov/sbra",
+                "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
                 "legendLayers": [legendLayer]
             };
         }
