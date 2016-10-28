@@ -567,7 +567,7 @@ require([
 
         $("#legendDiv").niceScroll({autohidemode: false});
         //set maxLegendHeight var to 95% height of map div
-        maxLegendHeight =  ($('#mapDiv').height()) * 0.95;
+        maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
 
         //set max heights for all to the maxLegendHeight
         legendElement.css('max-height', maxLegendHeight);
@@ -580,7 +580,7 @@ require([
             $('#legendLabel').show();
 
             //establish maxLegendHeight var as 95% of total map div height, updated in case window size changed since load
-           maxLegendHeight =  ($('#mapDiv').height()) * 0.95;
+           maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
 
             ///order, top to bottom: legendElement > legendCollapse > legendDiv
             //set max heights for all to the new maxLegendHeight
