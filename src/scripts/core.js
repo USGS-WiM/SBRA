@@ -99,8 +99,9 @@ require([
     var useLocalStorage = supports_local_storage();
     var popup = new Popup({
     }, domConstruct.create("div"));
-    //Add the dark theme which is customized further in the <style> tag at the top of this page
-    domClass.add(popup.domNode, "dark");
+    //popup dark theme
+    //domClass.add(popup.domNode, "dark");
+    domClass.add(popup.domNode);
 
     map = new Map('mapDiv', {
         basemap: 'gray',
@@ -566,7 +567,7 @@ require([
         var legendDiv= $('#legendDiv');
 
         $("#legendDiv").niceScroll({autohidemode: false});
-        //set maxLegendHeight var to 95% height of map div
+        //set maxLegendHeight var to 90% height of map div
         maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
 
         //set max heights for all to the maxLegendHeight
@@ -579,7 +580,7 @@ require([
             //show the legend label, which may have been hidden if screen was small
             $('#legendLabel').show();
 
-            //establish maxLegendHeight var as 95% of total map div height, updated in case window size changed since load
+            //establish maxLegendHeight var as 90% of total map div height, updated in case window size changed since load
            maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
 
             ///order, top to bottom: legendElement > legendCollapse > legendDiv
@@ -596,13 +597,14 @@ require([
 
         });
 
-
         legendCollapse.on('hide.bs.collapse', function () {
            legendElement.css('height', 'initial');
             if (window.innerWidth <= 767){
                 $('#legendLabel').hide();
             }
         });
+        //end legend logic
+
         //jQuery selector for measurement tool control
         var measurementCollapse = $('#measurementCollapse');
         measurementCollapse.on('shown.bs.collapse', function () {
@@ -702,6 +704,7 @@ require([
         "esri/Color",
         "esri/dijit/Popup",
         "esri/dijit/PopupTemplate",
+        "esri/InfoTemplate",
         'dojo/query',
         'dojo/dom'
     ], function(
@@ -728,6 +731,7 @@ require([
         Color,
         Popup,
         PopupTemplate,
+        InfoTemplate,
         query,
         dom
     ) {
@@ -872,11 +876,22 @@ require([
         legendLayers.push({layer:lakeLevelStationsLayer, title:" "});
         lakeLevelStationsLayer.inLegendLayers = true;
 
+        var vegPopup = new InfoTemplate();
+        vegPopup.setTitle("Wetland Biological Integrity");
+        vegPopup.setContent( "<div style='text-align: left'><b>Wetland:</b>  ${name}<br/><b>Wetland class:</b> ${class}<br/><b>Veg IBI value:</b> ${VegIBI}<br/>More information available from the Great Lakes Coastal Wetlands Monitoring Program: <a href='http://greatlakeswetlands.org' target='_blank'>greatlakeswetlands.org</a></div>");
+
+        var vegLayer = new FeatureLayer("https://services5.arcgis.com/ed839pyDNWVlk9KK/ArcGIS/rest/services/CWMP_Vegetation_IBI/FeatureServer/0", {id: "veg", layerID: "veg", visible:false, mode: FeatureLayer.MODE_ONDEMAND, outFields: ["*"], infoTemplate: vegPopup});
+        vegLayer.id = "veg";
+        mapLayers.push(vegLayer);
+        mapLayerIds.push(vegLayer.id);
+        legendLayers.push({layer:vegLayer , title:""});
+        vegLayer.inLegendLayers = true;
+
         var aerialsPopup = new PopupTemplate({
             title: "U.S. ACOE Aerial Photo",
             mediaInfos: [{
                 "title": "",
-                "caption": "Date & Time taken: {date_}",
+                "caption": "Date & Time taken: {date}",
                 "type": "image",
                 "value": {
                     sourceURL: "{imageUrl}",
@@ -942,7 +957,7 @@ require([
         mapLayers.push(waterMaskLayer);
         mapLayerIds.push(waterMaskLayer.id);
         waterMaskLayer.inLegendLayers = false;
-        //legendLayers.push ({layer:waterMaskLayer, title: "P0 - Water Mask"});
+        legendLayers.push ({layer:waterMaskLayer, title: ""});
         /////end parameters group
 
         map.addLayers(mapLayers);
