@@ -547,8 +547,22 @@ require([
             showAboutModal();
         });
 
-        $('#disclaimerModal').modal({backdrop: 'static'});
-        $('#disclaimerModal').modal('show');
+        $("#IEwarnContinue").click(function () {
+            $('#disclaimerModal').modal({backdrop: 'static'});
+            $('#disclaimerModal').modal('show');
+        });
+
+        if(navigator.userAgent.indexOf('MSIE')!==-1 || navigator.appVersion.indexOf('Trident/') > 0){
+            $("#IEwarningModal").modal('show');
+        } else {
+            $('#disclaimerModal').modal({backdrop: 'static'});
+            $('#disclaimerModal').modal('show');
+        }
+
+        //collapse legend on load if small screen (saves real estate)
+        if ( $(window).width() < 767) {
+            $('#legendCollapse').addClass('collapse');
+        }
 
         $("#html").niceScroll();
         //jQuery selector variable assignment for sidebar
@@ -1043,10 +1057,10 @@ require([
             $(("#"+ groupToggleID)).find('i.chevron').toggleClass('fa-chevron-right fa-chevron-down');
         });
 
-        $(".zoomto").hover(function (e) {
+        $(".zoomto").hover(function (event) {
 
             $(".zoomDialog").remove();
-            var layerToChange = this.parentNode.id;
+            var layerToChange = this.id.replace("zoom", "");
             var zoomDialogMarkup = $('<div class="zoomDialog"><label class="zoomClose pull-right">X</label><br><div class="list-group"><a href="#" id="zoomscale" class="list-group-item lgi-zoom zoomscale">Zoom to scale</a> <a id="zoomcenter" href="#" class="list-group-item lgi-zoom zoomcenter">Zoom to center</a><a id="zoomextent" href="#" class="list-group-item lgi-zoom zoomextent">Zoom to extent</a></div></div>');
             $("body").append(zoomDialogMarkup);
 
@@ -1064,7 +1078,7 @@ require([
             $('#zoomscale').click(function (e) {
                 //logic to zoom to layer scale
                 var layerMinScale = map.getLayer(layerToChange).minScale;
-                map.setScale(layerMinScale);
+                if (layerMinScale > 0 ){map.setScale(layerMinScale);} else {console.log("No minimum scale for layer.")};
             });
 
             $("#zoomcenter").click(function (e){
@@ -1088,10 +1102,10 @@ require([
             });
         });
 
-        $(".opacity").hover(function () {
+        $(".opacity").hover(function (event) {
 
             $(".opacitySlider").remove();
-            var layerToChange = this.parentNode.id;
+            var layerToChange = this.id.replace("opacity", "");
             var currOpacity = map.getLayer(layerToChange).opacity;
             var sliderMarkup = $('<div class="opacitySlider"><label id="opacityValue">Opacity: ' + currOpacity + '</label><label class="opacityClose pull-right">X</label><input id="slider" type="range"></div>');
             $("body").append(sliderMarkup);
