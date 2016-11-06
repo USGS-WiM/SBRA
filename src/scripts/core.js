@@ -547,6 +547,16 @@ require([
             showAboutModal();
         });
 
+        $('#scaleAlertClose').click(function() {
+            $('#parcelSelectScaleAlert').hide();
+        });
+
+        $('#goToScale').click(function() {
+            $('#parcelSelectScaleAlert').hide();
+            var parcelsScale = map.getLayer('parcelsFeat').minScale;
+            map.setScale(parcelsScale);
+        });
+
         $("#IEwarnContinue").click(function () {
             $('#disclaimerModal').modal({backdrop: 'static'});
             $('#disclaimerModal').modal('show');
@@ -847,6 +857,7 @@ require([
             //var symbol = new SimpleFillSymbol("none", new SimpleLineSymbol("dashdot", new Color([255,0,0]), 2), new Color([255,255,0,0.25]));
             customAreaSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.5]));
             customAreaGraphic = new Graphic(customAreaGeometry,customAreaSymbol);
+            customAreaGraphic.setAttributes({"ZONE_ID": 1});
             map.graphics.add(customAreaGraphic);
             customAreaDraw.deactivate();
             drawCustom.removeClass("active");
@@ -855,7 +866,8 @@ require([
             customAreaFeatureArray.push(customAreaGraphic);
             var featureSet = new FeatureSet();
             featureSet.features = customAreaFeatureArray;
-            customAreaParams = { "inputPoly":featureSet };
+            //customAreaParams = { "inputPoly":featureSet };
+            customAreaParams = { "in_zone_data":featureSet,  "zone_field": "ZONE_ID" };
             $("#calculateStats").prop('disabled', false);
             //zonalStatsGP.execute(customAreaParams);
         });
@@ -1101,6 +1113,7 @@ require([
                 });
             });
         });
+
 
         $(".opacity").hover(function (event) {
 
