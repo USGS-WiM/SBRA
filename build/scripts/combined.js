@@ -1,1 +1,1498 @@
-function addCommas(e){e+="";for(var a=e.split("."),t=a[0],i=a.length>1?"."+a[1]:"",o=/(\d+)(\d{3})/;o.test(t);)t=t.replace(o,"$1,$2");return t+i}function camelize(e){return e.replace(/(?:^\w|[A-Z]|\b\w)/g,function(e,a){return 0==a?e.toLowerCase():e.toUpperCase()}).replace(/\s+/g,"")}!function(e){e.fn.confirmModal=function(a){function t(e,a){}var i=e("body"),o={confirmTitle:"Please confirm",confirmMessage:"Are you sure you want to perform this action ?",confirmOk:"Yes",confirmCancel:"Cancel",confirmDirection:"rtl",confirmStyle:"primary",confirmCallback:t,confirmDismiss:!0,confirmAutoOpen:!1},s=e.extend(o,a),r='<div class="modal fade" id="#modalId#" tabindex="-1" role="dialog" aria-labelledby="#AriaLabel#" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>#Heading#</h3></div><div class="modal-body"><p>#Body#</p></div><div class="modal-footer">#buttonTemplate#</div></div></div></div>';return this.each(function(a){var t=e(this),o=t.data(),n=(e.extend(s,o),"confirmModal"+Math.floor(1e9*Math.random())),l=r,c='<button class="btn btn-default" data-dismiss="modal">#Cancel#</button><button class="btn btn-#Style#" data-dismiss="ok">#Ok#</button>';"ltr"==s.confirmDirection&&(c='<button class="btn btn-#Style#" data-dismiss="ok">#Ok#</button><button class="btn btn-default" data-dismiss="modal">#Cancel#</button>');var d=s.confirmTitle;"function"==typeof s.confirmTitle&&(d=s.confirmTitle.call(this));var m=s.confirmMessage;"function"==typeof s.confirmMessage&&(m=s.confirmMessage.call(this)),l=l.replace("#buttonTemplate#",c).replace("#modalId#",n).replace("#AriaLabel#",d).replace("#Heading#",d).replace("#Body#",m).replace("#Ok#",s.confirmOk).replace("#Cancel#",s.confirmCancel).replace("#Style#",s.confirmStyle),i.append(l);var p=e("#"+n);t.on("click",function(e){e.preventDefault(),p.modal("show")}),e('button[data-dismiss="ok"]',p).on("click",function(e){s.confirmDismiss&&p.modal("hide"),s.confirmCallback(t,p)}),s.confirmAutoOpen&&p.modal("show")})}}(jQuery);var allLayers;require(["esri/geometry/Extent","esri/layers/WMSLayerInfo","esri/layers/FeatureLayer","dojo/domReady!"],function(e,a,t){allLayers=[]}),function(){"use strict"}();var sbra=sbra||{bookmarks:[],globals:{mapCenter:[-83.6884,43.7919]}},map,zonalStatsGP,maxLegendHeight,maxLegendDivHeight,printCount=0,storageName="esrijsapi_mapmarks",mapLayers=[],mapLayerIds=[];require(["esri/map","esri/dijit/OverviewMap","esri/SnappingManager","esri/dijit/HomeButton","esri/dijit/LocateButton","esri/dijit/Measurement","esri/dijit/Bookmarks","esri/layers/ArcGISTiledMapServiceLayer","esri/dijit/Search","esri/dijit/Popup","esri/dijit/PopupTemplate","esri/graphic","esri/geometry/Multipoint","esri/symbols/PictureMarkerSymbol","esri/geometry/webMercatorUtils","esri/tasks/GeometryService","esri/tasks/PrintTask","esri/tasks/PrintParameters","esri/tasks/PrintTemplate","esri/tasks/LegendLayer","esri/SpatialReference","esri/geometry/Extent","esri/config","esri/urlUtils","esri/request","dojo/_base/array","dojo/_base/lang","dojo/keys","dojo/cookie","dojo/has","dojo/dom","dojo/dom-class","dojo/dom-construct","dojo/on","dojo/domReady!"],function(e,a,t,i,o,s,r,n,l,c,d,m,p,u,g,h,b,y,v,f,k,L,S,w,x,C,M,I,B,T,A,D,R,z){function O(){if(U){var e=[];C.forEach(sbra.bookmarks,function(a){a.userCreated===!1&&e.push(a.id)});for(var a=sbra.bookmarks.slice(),t=0;t<a.length;t++){var i=a[t];-1!==e.indexOf(i.id)&&(a.splice(t,1),t--)}console.log(a);var o=JSON.stringify(a);window.localStorage.setItem(storageName,o)}else{var s=7;B(storageName,dojo.toJson(sbra.bookmarks),{expires:s})}}function E(){U?window.localStorage.removeItem(storageName):dojo.cookie(storageName,null,{expires:-1});var e=[];C.forEach(sbra.bookmarks,function(a){a.userCreated===!0&&e.push(a.id)});for(var a=0;a<sbra.bookmarks.length;a++){var t=sbra.bookmarks[a];-1!==e.indexOf(t.id)&&(sbra.bookmarks.splice(a,1),a--)}C.forEach(e,function(e){$("#"+e).remove()})}function G(){try{return"localStorage"in window&&null!==window.localStorage}catch(e){return!1}}function j(){$("#shareModal").modal("show");var e=map.extent,a="?xmax="+e.xmax.toString()+"&xmin="+e.xmin.toString()+"&ymax="+e.ymax.toString()+"&ymin="+e.ymin.toString(),t="%3Fxmax="+e.xmax.toString()+"%26xmin="+e.xmin.toString()+"%26ymax="+e.ymax.toString()+"%26ymin="+e.ymin.toString(),i="https://glcwra.wim.usgs.gov/SBRA/",o=i+a,s=i+t;console.log("Share URL is:"+o),$("#showFullLinkButton").click(function(){$("#fullShareURL").html('<span id="fullLinkLabel" class="label label-default"><span class="glyphicon glyphicon-link"></span> Full link</span><br><textarea style="margin-bottom: 10px; cursor: text" class="form-control"  rows="3" readonly>'+o+"</textarea>")}),$("#showShortLinkButton").click(function(){$.ajax({dataType:"json",type:"GET",url:"https://api-ssl.bitly.com/v3/shorten?access_token=e1a16076cc8470c65419920156e0ae2c4f77850f&longUrl="+s,headers:{Accept:"*/*"},success:function(e){var a=e.data.url;$("#bitlyURL").html('<span class="label label-default"><span class="glyphicon glyphicon-link"></span> Bitly link</span><code>'+a+"</code>")},error:function(e){$("#bitlyURL").html('<i class="fa fa-exclamation-triangle"></i> An error occurred retrieving shortened Bitly URL')}})})}function P(){$("#printModal").modal("show")}function F(){$("#bookmarkModal").modal("show")}function V(){function e(e){printCount++;var a=$("<p><label>"+printCount+': </label>&nbsp;&nbsp;<a href="'+e.url+'" target="_blank">'+l+" </a></p>");$("#printJobsDiv").find("p.toRemove").remove(),$("#printModalBody").append(a),$("#printTitle").val(""),$("#printExecuteButton").button("reset")}function a(e){alert("Sorry, an unclear print error occurred. Please try refreshing the application to fix the problem"),$("#printExecuteButton").button("reset")}var t=new y;t.map=map;var i=new v;i.exportOptions={width:500,height:400,dpi:300};var o=map.getZoom(),s="";o>=9&&(s="9"),o>=11&&(s="11"),o>=15&&(s="15"),i.showAttribution=!1,i.format="PDF",i.layout="Letter ANSI A LandscapeGLCWRA"+s,i.preserveScale=!1;var r=new f;r.layerId="normalized",r.subLayerIds=[0];var n=$("#printTitle").val();""===n?i.layoutOptions={titleText:"Saginaw Bay Restoration Assessment - Provisional Data",authorText:"Saginaw Bay Restoration Assessment (SBRA)",copyrightText:"This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",legendLayers:[r]}:i.layoutOptions={titleText:n+" - Provisional Data",authorText:"Saginaw Bay Restoration Assessment (SBRA)",copyrightText:"This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",legendLayers:[r]};var l=i.layoutOptions.titleText;t.template=i;var c=new b("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task");c.execute(t,e,a)}function N(){var e=$("#bookmarkTitle"),a=map.extent.toJson(),t=e.val();if(t.length>0){var i=t.toLowerCase().replace(/ /g,"-");a.name=t,a.id=i,a.userCreated=!0,sbra.bookmarks.push(a);var o=i+"_delete",s=$('<tr id="'+i+'"><td  class="bookmarkTitle td-bm">'+t+'</td><td class="text-right text-nowrap"> <button id="'+o+'" class="btn btn-xs btn-warning bookmarkDelete" data-toggle="tooltip" data-placement="top" > <span class="glyphicon glyphicon-remove"></span> </button> </td> </tr>');$("#bookmarkList").append(s),$("#"+o).confirmation({placement:"left",title:"Delete this bookmark?",btnOkLabel:"Yes",btnCancelLabel:"Cancel",popout:!0,onConfirm:function(){$("#"+i).remove();for(var e=0;e<sbra.bookmarks.length;e++){var a=sbra.bookmarks[e];-1!==i.indexOf(a.id)&&sbra.bookmarks.splice(e,1)}O()}}),e.val(""),O(),$("#bmAlert").hide(),$("#bookmarkModal").modal("hide")}else $("#bmAlert").show()}function H(){var e=esri.urlToObject(document.location.href);if(e.query){var a=new L(parseFloat(e.query.xmin),parseFloat(e.query.ymin),parseFloat(e.query.xmax),parseFloat(e.query.ymax),new k({wkid:102100}));map.setExtent(a);var t=document.location.href,i=t.substring(0,t.indexOf("?"));history.pushState(null,"",i)}}var U=G(),q=new c({},R.create("div"));D.add(q.domNode),map=new e("mapDiv",{basemap:"gray",center:sbra.globals.mapCenter,spatialReference:26917,zoom:9,logo:!1,minZoom:9,infoWindow:q}),S.defaults.geometryService=new h("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer"),esri.config.defaults.io.corsEnabledServers.push("https://gis.wim.usgs.gov/");const _=new i({map:map},"homeButton");_.startup();const W=new o({map:map},"locateButton");W.startup();const Y=new s({map:map,advancedLocationUnits:!0},A.byId("measurementDiv"));Y.startup();var Z;if(Z=U?window.localStorage.getItem(storageName):dojo.cookie(storageName),Z&&"null"!==Z&&Z.length>4){console.log("cookie: ",Z,Z.length);var X=dojo.fromJson(Z);C.forEach(X,function(e){sbra.bookmarks.push(e)})}else console.log("no stored bookmarks...");const J=new a({map:map,attachTo:"bottom-right"});J.startup();var K=$('<tr class="esriMeasurementTableRow" id="utmCoords"><td><span>UTM17</span></td><td class="esriMeasurementTableCell"> <span id="utmX" dir="ltr">UTM X</span></td> <td class="esriMeasurementTableCell"> <span id="utmY" dir="ltr">UTM Y</span></td></tr>');$(".esriMeasurementResultTable").append(K),$(window).resize(function(){$("#legendCollapse").hasClass("in")?(maxLegendHeight=.9*$("#mapDiv").height(),$("#legendElement").css("height",maxLegendHeight),$("#legendElement").css("max-height",maxLegendHeight),maxLegendDivHeight=$("#legendElement").height()-parseInt($("#legendHeading").css("height").replace("px","")),$("#legendDiv").css("max-height",maxLegendDivHeight)):$("#legendElement").css("height","initial")}),$("#shareNavButton").click(function(){j()}),$("#printNavButton").click(function(){P()}),$("#addBookmarkButton").click(function(){F()}),$("#printExecuteButton").click(function(){$(this).button("loading"),V()}),$("#print-title-form").on("keypress",function(e){13==e.keyCode&&($("#printExecuteButton").button("loading"),V())}),$("#bookmarkSaveButton").click(function(){N()}),$("#bookmark-title-form").on("keypress",function(e){13==e.keyCode&&N()}),$("#bookmarkDismissButton").click(function(){$("#bmAlert").hide()}),z(map,"load",function(){var e=map.getScale().toFixed(0);$("#scale")[0].innerHTML=addCommas(e);var a=g.webMercatorToGeographic(map.extent.getCenter());$("#latitude").html(a.y.toFixed(4)),$("#longitude").html(a.x.toFixed(4)),H()}),z(map,"zoom-end",function(){var e=map.getScale().toFixed(0);$("#scale")[0].innerHTML=addCommas(e)}),z(map,"mouse-move",function(e){if($("#mapCenterLabel").css("display","none"),null!==e.mapPoint){var a=g.webMercatorToGeographic(e.mapPoint);$("#latitude").html(a.y.toFixed(4)),$("#longitude").html(a.x.toFixed(4))}}),z(map,"pan-end",function(){$("#mapCenterLabel").css("display","inline");var e=g.webMercatorToGeographic(map.extent.getCenter());$("#latitude").html(e.y.toFixed(4)),$("#longitude").html(e.x.toFixed(4))});var Q=new n("https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",{visible:!1});map.addLayer(Q),z(A.byId("btnStreets"),"click",function(){map.setBasemap("streets"),Q.setVisibility(!1)}),z(A.byId("btnSatellite"),"click",function(){map.setBasemap("satellite"),Q.setVisibility(!1)}),z(A.byId("btnGray"),"click",function(){map.setBasemap("gray"),Q.setVisibility(!1)}),z(A.byId("btnOSM"),"click",function(){map.setBasemap("osm"),Q.setVisibility(!1)}),z(A.byId("btnTopo"),"click",function(){map.setBasemap("topo"),Q.setVisibility(!1)}),z(A.byId("btnNatlMap"),"click",function(){Q.setVisibility(!0)});var ee=new l({map:map},"geosearch");ee.startup(),z(ee,"search-results",function(e){$("#geosearchModal").modal("hide")}),$(document).ready(function(){function e(){$("#geosearchModal").modal("show")}function a(){$("#aboutModal").modal("show")}$("#geosearchNav").click(function(){e()}),$("#aboutNav").click(function(){a()}),$("#scaleAlertClose").click(function(){$("#parcelSelectScaleAlert").hide()}),$("#goToScale").click(function(){$("#parcelSelectScaleAlert").hide();var e=map.getLayer("parcelsFeat").minScale;map.setScale(e)}),$("#IEwarnContinue").click(function(){$("#disclaimerModal").modal({backdrop:"static"}),$("#disclaimerModal").modal("show")}),-1!==navigator.userAgent.indexOf("MSIE")||navigator.appVersion.indexOf("Trident/")>0?$("#IEwarningModal").modal("show"):($("#disclaimerModal").modal({backdrop:"static"}),$("#disclaimerModal").modal("show")),$(window).width()<767&&$("#legendCollapse").addClass("collapse"),$("#html").niceScroll();var t=$("#sidebar");t.niceScroll(),t.scroll(function(){$("#sidebar").getNiceScroll().resize()});var i=$("#legendCollapse"),o=$("#legendElement"),s=$("#legendDiv");$("#legendDiv").niceScroll({autohidemode:!1}),maxLegendHeight=.9*$("#mapDiv").height(),o.css("max-height",maxLegendHeight),i.css("max-height",maxLegendHeight),s.css("max-height",maxLegendHeight),i.on("shown.bs.collapse",function(){$("#legendLabel").show(),maxLegendHeight=.9*$("#mapDiv").height(),o.css("max-height",maxLegendHeight),i.css("max-height",maxLegendHeight),s.css("max-height",maxLegendHeight),o.css("height",maxLegendHeight),i.css("height",maxLegendHeight),maxLegendDivHeight=o.height()-parseInt($("#legendHeading").css("height").replace("px","")),s.css("height",maxLegendDivHeight)}),i.on("hide.bs.collapse",function(){o.css("height","initial"),window.innerWidth<=767&&$("#legendLabel").hide()});var r=$("#measurementCollapse");r.on("shown.bs.collapse",function(){$("#measureLabel").show()}),r.on("hide.bs.collapse",function(){window.innerWidth<=767&&$("#measureLabel").hide()}),$(function(){$("[data-hide]").on("click",function(){$("."+$(this).attr("data-hide")).hide()})}),sbra.bookmarks.forEach(function(e){if(e.userCreated===!1){var a=$('<tr id="'+e.id+'"><td class="bookmarkTitle td-bm">'+e.name+'</td><td class="text-right text-nowrap"></td> </tr>');$("#bookmarkList").append(a)}else{var t=e.id+"_delete",i=$('<tr id="'+e.id+'"><td  class="bookmarkTitle td-bm">'+e.name+'</td><td class="text-right text-nowrap"> <button id="'+t+'" class="btn btn-xs btn-warning bookmarkDelete" data-toggle="tooltip" data-placement="top" title="Delete bookmark"> <span class="glyphicon glyphicon-remove"></span> </button> </td> </tr>');$("#bookmarkList").append(i),$("#"+t).confirmation({placement:"left",title:"Delete this bookmark?",btnOkLabel:"Yes",btnCancelLabel:"Cancel",popout:!0,onConfirm:function(){$("#"+e.id).remove();for(var a=0;a<sbra.bookmarks.length;a++){var t=sbra.bookmarks[a];-1!==e.id.indexOf(t.id)&&sbra.bookmarks.splice(a,1)}O()}})}}),$("body").on("click",".td-bm",function(){var e=this.parentNode.id;sbra.bookmarks.forEach(function(a){if(a.id==e){var t=new L(a.xmin,a.ymin,a.xmax,a.ymax,new k(a.spatialReference));map.setExtent(t)}})}),$('[data-toggle="tooltip"]').tooltip({delay:{show:500,hide:0}}),$("#removeBookmarksButton").confirmModal({confirmTitle:"Delete user bookmarks from memory",confirmMessage:"This action will remove all user-defined bookmarks from local memory on your computer or device. Would you like to continue?",confirmOk:"Yes, delete bookmarks",confirmCancel:"Cancel",confirmDirection:"rtl",confirmStyle:"primary",confirmCallback:E,confirmDismiss:!0,confirmAutoOpen:!1})}),require(["esri/dijit/Legend","esri/tasks/locator","esri/tasks/query","esri/tasks/Geoprocessor","esri/tasks/FeatureSet","esri/tasks/GeometryService","esri/tasks/ProjectParameters","esri/tasks/QueryTask","esri/graphicsUtils","esri/geometry/Point","esri/toolbars/draw","esri/SpatialReference","esri/geometry/Extent","esri/layers/ArcGISDynamicMapServiceLayer","esri/layers/FeatureLayer","esri/layers/LabelLayer","esri/symbols/TextSymbol","esri/symbols/SimpleFillSymbol","esri/symbols/SimpleLineSymbol","esri/renderers/SimpleRenderer","esri/Color","esri/dijit/Popup","esri/dijit/PopupTemplate","esri/InfoTemplate","dojo/query","dojo/dom"],function(e,a,t,i,o,s,r,n,l,c,d,p,u,g,h,b,y,v,f,k,L,S,w,x,C,M){function I(e){$("#calculateStats").button("reset");var a=e.results[0].value.features[0].attributes,t=$("#zonalStatsTable");t.html("<tr><th>Mean </th><th>Standard Deviation</th><th>Max</th></tr>"),t.append("<tr><td>"+a.MEAN.toFixed(4)+"</td><td>"+a.STD.toFixed(3)+"</td><td>"+a.MAX+"</td></tr>"),$("#zonalStatsModal").modal("show")}var B,T,A,D=[],R=!1,O=!1,E={inputPoly:null},G=[];const j="https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/",P=new s("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer"),F=new g(j+"SBRA/MapServer",{id:"normalized",visible:!0});F.setVisibleLayers([4]),mapLayers.push(F),mapLayerIds.push(F.id),D.push({layer:F,title:" "}),F.inLegendLayers=!0;const V=new g(j+"SBRA/MapServer",{id:"dikes",visible:!1,minScale:1e5});V.setVisibleLayers([16]),mapLayers.push(V),mapLayerIds.push(V.id),V.inLegendLayers=!1;const N=new g(j+"SBRA/MapServer",{id:"degFlowlines",visible:!1,minScale:1e5});N.setVisibleLayers([15]),mapLayers.push(N),mapLayerIds.push(N.id),N.inLegendLayers=!1;const H=new g(j+"SBRA/MapServer",{id:"culverts",visible:!1,minScale:1e5});H.setVisibleLayers([14]),mapLayers.push(H),mapLayerIds.push(H.id),H.inLegendLayers=!1,map.disableClickRecenter(),B=new d(map);var U=$("#drawCustom");U.click(function(){map.graphics.remove(A),$("#displayStats").prop("disabled",!0),$("#calculateStats").prop("disabled",!0),E={inputPoly:null},O?(B.finishDrawing(),B.deactivate(),U.removeClass("active"),U.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw'),O=!1):O||(U.addClass("active"),U.html('<i class="fa fa-stop"></i>&nbsp;&nbsp;Stop drawing'),R=!1,B.activate(d.POLYGON),O=!0)}),$("#clearSelection").click(function(){map.graphics.remove(A),$("#displayStats").prop("disabled",!0),$("#calculateStats").prop("disabled",!0),E={inputPoly:null},G=[]}),zonalStatsGP=new i("https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/SBRAZonalStats/GPServer/SBRAZonalStats"),zonalStatsGP.setOutputSpatialReference({wkid:102100}),zonalStatsGP.on("execute-complete",I),$("#calculateStats").click(function(){$(this).button("loading"),zonalStatsGP.execute(E)}),z(B,"DrawEnd",function(e){T=new v(v.STYLE_SOLID,new f(f.STYLE_SOLID,new L([255,0,0]),2),new L([255,255,0,.5])),A=new m(e,T),A.setAttributes({ZONE_ID:1}),map.graphics.add(A),B.deactivate(),U.removeClass("active"),U.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw'),O=!1,G.push(A);var a=new o;a.features=G,E={in_zone_data:a,zone_field:"ZONE_ID"},$("#calculateStats").prop("disabled",!1)});const q=new g(j+"SBRA/MapServer",{id:"studyArea",visible:!0});q.setVisibleLayers([0]),mapLayers.push(q),mapLayerIds.push(q.id),D.push({layer:q,title:" "}),q.inLegendLayers=!0;const _=new g(j+"SBRA/MapServer",{id:"GLRIWetlands",visible:!0,minScale:1e5,maxScale:1e4});_.setVisibleLayers([3]),mapLayers.push(_),D.push({layer:_,title:" "}),_.inLegendLayers=!0;const W=new g(j+"SBRA/MapServer",{id:"stations",visible:!1});W.setVisibleLayers([2]),mapLayers.push(W),D.push({layer:W,title:" "}),W.inLegendLayers=!0;var Z=new x;Z.setTitle("Wetland Biological Integrity"),Z.setContent("<div style='text-align: left'><b>Wetland:</b>  ${name}<br/><b>Wetland class:</b> ${class}<br/><b>Veg IBI value:</b> ${VegIBI}<br/>More information available from the Great Lakes Coastal Wetlands Monitoring Program: <a href='http://greatlakeswetlands.org' target='_blank'>greatlakeswetlands.org</a></div>");var X=new h("https://services5.arcgis.com/ed839pyDNWVlk9KK/ArcGIS/rest/services/CWMP_Vegetation_IBI/FeatureServer/0",{id:"veg",layerID:"veg",visible:!1,mode:h.MODE_ONDEMAND,outFields:["*"],infoTemplate:Z});X.id="veg",mapLayers.push(X),mapLayerIds.push(X.id),D.push({layer:X,title:""}),X.inLegendLayers=!0;var J=new w({title:"U.S. ACOE Aerial Photo",mediaInfos:[{title:"",caption:"Date & Time taken: {date}",type:"image",value:{sourceURL:"{imageUrl}",linkURL:"{imageUrl}"}}]}),K=new h(j+"SBRA/MapServer/1",{id:"aerials",layerID:"aerials",visible:!1,minScale:1e5,mode:h.MODE_ONDEMAND,outFields:["*"],infoTemplate:J});K.id="aerials",mapLayers.push(K),mapLayerIds.push(K.id),D.push({layer:K,title:"US Army Corps of Engineers Aerial Photos "}),K.inLegendLayers=!0;const Q=new g(j+"SBRA/MapServer",{id:"landuse",visible:!1});Q.setVisibleLayers([12]),mapLayers.push(Q),mapLayerIds.push(Q.id),Q.inLegendLayers=!1;const ee=new g(j+"SBRA/MapServer",{id:"imperviousSurfaces",visible:!1});ee.setVisibleLayers([11]),mapLayers.push(ee),mapLayerIds.push(ee.id),ee.inLegendLayers=!1;const ae=new g(j+"SBRA/MapServer",{id:"conservedLands",visible:!1});ae.setVisibleLayers([10]),mapLayers.push(ae),mapLayerIds.push(ae.id),ae.inLegendLayers=!1;const te=new g(j+"SBRA/MapServer",{id:"flowline",visible:!1});te.setVisibleLayers([9]),mapLayers.push(te),mapLayerIds.push(te.id),te.inLegendLayers=!1;const ie=new g(j+"SBRA/MapServer",{id:"wetsoils",visible:!1});ie.setVisibleLayers([8]),mapLayers.push(ie),mapLayerIds.push(ie.id),ie.inLegendLayers=!1;const oe=new g(j+"SBRA/MapServer",{id:"hydroperiod",visible:!1});oe.setVisibleLayers([7]),mapLayers.push(oe),mapLayerIds.push(oe.id),oe.inLegendLayers=!1;const se=new g(j+"SBRA/MapServer",{id:"waterMask",visible:!0,opacity:.75});se.setVisibleLayers([6]),mapLayers.push(se),mapLayerIds.push(se.id),se.inLegendLayers=!1,D.push({layer:se,title:""}),map.addLayers(mapLayers);var re=new r,ne=new p(26917);Y.on("measure-end",function(e){re.geometries=[e.geometry],re.outSR=ne;var a=-1*e.geometry.x;84>a&&a>78?P.project(re,function(e){var a=e[0];console.log(a);var t=a.x.toFixed(0),i=a.y.toFixed(0);$("#utmX").html(t),$("#utmY").html(i)}):($("#utmX").html('<span class="label label-danger">outside zone</span>'),$("#utmY").html('<span class="label label-danger">outside zone</span>'))});for(var le=0;le<map.layerIds.length;le++){var ce=map.getLayer(map.layerIds[le]);ce.visible&&($("#"+ce.id).button("toggle"),$("#"+ce.id).find("i.checkBoxIcon").toggleClass("fa-check-square-o fa-square-o"))}for(var le=0;le<map.graphicsLayerIds.length;le++){var ce=map.getLayer(map.graphicsLayerIds[le]);ce.visible&&($("#"+ce.id).button("toggle"),$("#"+ce.id).find("i.checkBoxIcon").toggleClass("fa-check-square-o fa-square-o"))}$("button.lyrTog").click(function(e){$(this).find("i.checkBoxIcon").toggleClass("fa-check-square-o fa-square-o"),$(this).button("toggle"),e.preventDefault(),e.stopPropagation();var a=map.getLayer($(this).attr("id"));a.visible?a.setVisibility(!1):(a.setVisibility(!0),a.inLegendLayers===!1&&(D.push({layer:a,title:" "}),a.inLegendLayers=!0,de.refresh()))}),$("#hydroConditionGroup, #parametersGroup, #4scaleGroup").on("hide.bs.collapse",function(){var e=$(this)[0].id.replace("Group","");$("#"+e).find("i.checkBoxIcon").toggleClass("fa-check-square-o fa-square-o"),$("#"+e).find("i.chevron").toggleClass("fa-chevron-right fa-chevron-down");var a=$(this).attr("id")+"Buttons";$("#"+a).button("toggle")}),$("#hydroConditionGroup, #parametersGroup, #4scaleGroup").on("show.bs.collapse",function(){var e=$(this)[0].id.replace("Group","");$("#"+e).find("i.checkBoxIcon").toggleClass("fa-check-square-o fa-square-o"),$("#"+e).find("i.chevron").toggleClass("fa-chevron-right fa-chevron-down")}),$(".zoomto").hover(function(e){$(".zoomDialog").remove();var a=this.id.replace("zoom",""),t=$('<div class="zoomDialog"><label class="zoomClose pull-right">X</label><br><div class="list-group"><a href="#" id="zoomscale" class="list-group-item lgi-zoom zoomscale">Zoom to scale</a> <a id="zoomcenter" href="#" class="list-group-item lgi-zoom zoomcenter">Zoom to center</a><a id="zoomextent" href="#" class="list-group-item lgi-zoom zoomextent">Zoom to extent</a></div></div>');$("body").append(t),$(".zoomDialog").css("left",e.clientX-80),$(".zoomDialog").css("top",e.clientY-5),$(".zoomDialog").mouseleave(function(){$(".zoomDialog").remove()}),$(".zoomClose").click(function(){$(".zoomDialog").remove()}),$("#zoomscale").click(function(e){var t=map.getLayer(a).minScale;t>0?map.setScale(t):console.log("No minimum scale for layer.")}),$("#zoomcenter").click(function(e){var a=new c(sbra.globals.mapCenter,new p({wkid:4326}));map.centerAt(a)}),$("#zoomextent").click(function(e){var t=map.getLayer(a).fullExtent,i=new r;i.outSR=new p(102100),i.geometries=[t],P.project(i,function(e){var a=e[0];map.setExtent(a,new p({wkid:102100}))})})}),$(".opacity").hover(function(e){$(".opacitySlider").remove();var a=this.id.replace("opacity",""),t=map.getLayer(a).opacity,i=$('<div class="opacitySlider"><label id="opacityValue">Opacity: '+t+'</label><label class="opacityClose pull-right">X</label><input id="slider" type="range"></div>');$("body").append(i);var o=$("#slider");o[0].value=100*t,$(".opacitySlider").css("left",e.clientX-180),$(".opacitySlider").css("top",e.clientY-5),$(".opacitySlider").mouseleave(function(){$(".opacitySlider").remove()}),$(".opacityClose").click(function(){$(".opacitySlider").remove()}),o.change(function(e){var t=o[0].value/100;console.log("o: "+t),$("#opacityValue").html("Opacity: "+t),map.getLayer(a).setOpacity(t)})});var de=new e({map:map,layerInfos:D},"legendDiv");de.startup()})});
+
+
+
+ (function($) {
+    $.fn.confirmModal = function(opts)
+    {
+        var body = $('body');
+        var defaultOptions    = {
+            confirmTitle     : 'Please confirm',
+            confirmMessage   : 'Are you sure you want to perform this action ?',
+            confirmOk        : 'Yes',
+            confirmCancel    : 'Cancel',
+            confirmDirection : 'rtl',
+            confirmStyle     : 'primary',
+            confirmCallback  : defaultCallback,
+            confirmDismiss   : true,
+            confirmAutoOpen  : false
+        };
+        var options = $.extend(defaultOptions, opts);
+
+        var headModalTemplate =
+            '<div class="modal fade" id="#modalId#" tabindex="-1" role="dialog" aria-labelledby="#AriaLabel#" aria-hidden="true">' +
+                '<div class="modal-dialog">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                            '<h3>#Heading#</h3>' +
+                        '</div>' +
+                        '<div class="modal-body">' +
+                            '<p>#Body#</p>' +
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        '#buttonTemplate#' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+            ;
+
+        return this.each(function(index)
+        {
+            var confirmLink = $(this);
+            var targetData  = confirmLink.data();
+
+            var currentOptions = $.extend(options, targetData);
+
+            var modalId = "confirmModal" + Math.floor(Math.random()*(1e+9));
+            var modalTemplate = headModalTemplate;
+            var buttonTemplate =
+                '<button class="btn btn-default" data-dismiss="modal">#Cancel#</button>' +
+                '<button class="btn btn-#Style#" data-dismiss="ok">#Ok#</button>'
+            ;
+
+            if(options.confirmDirection == 'ltr')
+            {
+                buttonTemplate =
+                    '<button class="btn btn-#Style#" data-dismiss="ok">#Ok#</button>' +
+                    '<button class="btn btn-default" data-dismiss="modal">#Cancel#</button>'
+                ;
+            }
+
+            var confirmTitle = options.confirmTitle;
+            if(typeof options.confirmTitle == 'function')
+            {
+                confirmTitle = options.confirmTitle.call(this);
+            }
+
+            var confirmMessage = options.confirmMessage;
+            if(typeof options.confirmMessage == 'function')
+            {
+                confirmMessage = options.confirmMessage.call(this);
+            }
+
+            modalTemplate = modalTemplate.
+                replace('#buttonTemplate#', buttonTemplate).
+                replace('#modalId#', modalId).
+                replace('#AriaLabel#', confirmTitle).
+                replace('#Heading#', confirmTitle).
+                replace('#Body#', confirmMessage).
+                replace('#Ok#', options.confirmOk).
+                replace('#Cancel#', options.confirmCancel).
+                replace('#Style#', options.confirmStyle)
+            ;
+
+            body.append(modalTemplate);
+
+            var confirmModal = $('#' + modalId);
+
+            confirmLink.on('click', function(modalEvent)
+            {
+                modalEvent.preventDefault();
+                confirmModal.modal('show');
+            });
+
+            $('button[data-dismiss="ok"]', confirmModal).on('click', function(event) {
+                if (options.confirmDismiss) {
+                    confirmModal.modal('hide');
+                }
+                options.confirmCallback(confirmLink, confirmModal);
+            });
+
+            if (options.confirmAutoOpen) {
+                confirmModal.modal('show');
+            }
+        });
+
+        function defaultCallback(target, modal)
+        {
+            //window.location = $(target).attr('href');
+        }
+    };
+})(jQuery);
+
+/**
+ * Created by bdraper on 4/17/2015.
+ */
+//utility function for formatting numbers with commas every 3 digits
+function addCommas(nStr) {
+    nStr += '';
+    var x = nStr.split('.');
+    var x1 = x[0];
+    var x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    while (rgx.test(x1)) {
+        x1 = x1.replace(rgx, '$1' + ',' + '$2');
+    }
+    return x1 + x2;
+}
+
+function camelize(str) {
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+        return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+    }).replace(/\s+/g, '');
+}
+/**
+ * Created by bdraper on 4/27/2015.
+ */
+var allLayers;
+
+require([
+    "esri/geometry/Extent",
+    "esri/layers/WMSLayerInfo",
+    "esri/layers/FeatureLayer",
+    'dojo/domReady!'
+], function(
+    Extent,
+    WMSLayerInfo,
+    FeatureLayer
+) {
+
+    allLayers = [
+        //{
+         //   "groupHeading": "WMS layers",
+        //    "showGroupHeading": true,
+        //    "includeInLayerList": true,
+        //    "layers": {
+        //        "ESRI Sample WMS": {
+        //            "url" : "http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer",
+        //            "options":{
+        //                "id": "esriSampleWMS",
+        //                //"format": "image/png",
+        //                "transparent":true,
+        //                "opacity": 0.6,
+        //                "visible": true,
+        //                //"extent": "-126.40869140625, 31.025390625, -109.66552734375, 41.5283203125",
+        //                //"wkid": 4326,
+        //                "resourceInfo":  {
+        //                    "extent": new Extent(-126.40869140625, 31.025390625, -109.66552734375, 41.5283203125, {
+        //                        "wkid": 4326
+        //                    }),
+        //                    "layerInfos": [new WMSLayerInfo({
+        //                        "name": "1",
+        //                        "title": "Rivers"
+        //                    }), new WMSLayerInfo({
+        //                        "name": "2",
+        //                        "title": "Cities"
+        //                    })]
+        //                },
+        //                "visibleLayers": ["1", "2"]
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisWMS",
+        //                "includeInLayerList": true,
+        //                "includeLegend" : true
+        //            }
+        //        },
+        //        "NOAA Flood Warnings": {
+        //            "url" : "http://nowcoast.noaa.gov/wms/com.esri.wms.Esrimap/wwa",
+        //            "options":{
+        //                "id": "noaaFloodWarn",
+        //                "transparent":true,
+        //                "opacity": 0.6,
+        //                "visible": true,
+        //                "resourceInfo":  {
+        //                    "extent": new Extent( -126.40869140625, 31.025390625, -109.66552734375, 41.5283203125, {
+        //                        "wkid": 4326
+        //                    }),
+        //                    "layerInfos": [new WMSLayerInfo({
+        //                        "name": 'floodWarnLyr',
+        //                        "title": 'Flood Warnings',
+        //                        "transparent": false
+        //                    })]
+        //                },
+        //                "visibleLayers": ['WARN_SHORT_FLW']
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisWMS",
+        //                "includeInLayerList": true,
+        //                "includeLegend": true,
+        //                "staticLegendOptions": {
+        //                    "hasStaticLegend": true,
+        //                    "legendTitle": "NOAA Flood Warnings (not the right legend, by the way)",
+        //                    "legendUrl": "http://nowcoast.noaa.gov/LayerInfo?layer=NHC_TRACK_POLY&data=legend"
+        //                }
+        //            }
+        //        }
+        //    }
+        //},
+        //{
+        //    "groupHeading": "feature layers",
+        //    "showGroupHeading": true,
+        //    "includeInLayerList": true,
+        //    "layers": {
+        //        "Pt Feature Layer": {
+        //            "url" : "http://wim.usgs.gov/arcgis/rest/services/BadRiverDataPortal/NWIS_Sites/MapServer/0",
+        //            "options": {
+        //                "id": "ptFeatureLayer",
+        //                "visible": true
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisFeature",
+        //                "includeInLayerList": true,
+        //                "includeLegend" : false
+        //            }
+        //        },
+        //        "FIM Sites": {
+        //            "url" : "http://fimlb-1071089098.us-east-1.elb.amazonaws.com/arcgis/rest/services/FIMMapper/sites/MapServer/0",
+        //            "options": {
+        //                "id": "fimSites",
+        //                "opacity": 0.75,
+        //                "visible": true
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisFeature",
+        //                "includeInLayerList": true,
+        //                "hasOpacitySlider": true,
+        //                "includeLegend" : true
+        //            }
+        //        }
+        //    }
+        //},
+        //{
+        //    "groupHeading": "radio button example",
+        //    "showGroupHeading": true,
+        //    "includeInLayerList": true,
+        //    "layers": {
+        //        "Cat 1":{
+        //            "url" : "http://olga.er.usgs.gov/stpgis/rest/services/Vulnerability/NACCH_change_probabilities/MapServer",
+        //            "visibleLayers": [5,6,7],
+        //            "options":{
+        //                "id": "cat1",
+        //                "opacity": 1.0,
+        //                "visible": true
+        //            },
+        //            "wimOptions":{
+        //                "type": "layer",
+        //                "layerType": "agisDynamic",
+        //                "includeInLayerList": true,
+        //                "exclusiveGroupName":"Coastal Erosion Hazard",
+        //                "includeLegend" : true
+        //            }
+        //        },
+        //        "Cat 2": {
+        //            "url" : "http://olga.er.usgs.gov/stpgis/rest/services/Vulnerability/NACCH_change_probabilities/MapServer",
+        //            "visibleLayers": [13,14,15],
+        //            "options":{
+        //                "id": "cat2",
+        //                "opacity": 1.0,
+        //                "visible": false
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisDynamic",
+        //                "includeInLayerList": true,
+        //                "exclusiveGroupName":"Coastal Erosion Hazard",
+        //                "includeLegend" : true
+        //            }
+        //        }
+        //    }
+        //},
+        //{
+        //    "groupHeading": "ESRI dynamic map services",
+        //    "showGroupHeading": true,
+        //    "includeInLayerList": true,
+        //    "layers": {
+        //        "Wetlands" : {
+        //            "url": "http://107.20.228.18/ArcGIS/rest/services/Wetlands/MapServer",
+        //            "options": {
+        //                "id": "Wetlands",
+        //                "opacity": 0.75,
+        //                "visible": true
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisDynamic",
+        //                "includeInLayerList": true,
+        //                "zoomScale": 144448,
+        //                "hasOpacitySlider": true,
+        //                "includeLegend" : true
+        //            }
+        //        },
+        //        "NAWQA networks" : {
+        //            "url": "http://wimsharedlb-418672833.us-east-1.elb.amazonaws.com/arcgis/rest/services/NAWQA/tablesTest/MapServer",
+        //            "options": {
+        //                "id": "nawqaNetworks",
+        //                "layers": [1],
+        //                "visible": false,
+        //                "opacity": 0.6
+        //            },
+        //            "wimOptions": {
+        //                "type": "layer",
+        //                "layerType": "agisDynamic",
+        //                "includeInLayerList": true,
+        //                "hasOpacitySlider": true,
+        //                "includeLegend" : false
+        //            }
+        //        }
+        //    }
+        //}
+    ]
+
+});
+
+
+
+
+
+
+//for jshint
+(function () {'use strict';}());
+// Generated on 2015-04-13 using generator-wim 0.0.1
+/**
+ * Created by bdraper on 4/3/2015.
+ */
+var sbra = sbra || {
+        bookmarks: [
+            //{"id":"ottawa-nwr", "name":"Ottawa NWR", "userCreated": false, spatialReference:{"wkid":102100}, "xmax":-9253627.864758775,"xmin":-9268896.161158718,"ymax":5109457.058192252,"ymin":5099759.110228584}
+        ],
+        globals: {
+            mapCenter: [-83.6884, 43.7919]
+        }
+    };
+
+var map;
+var zonalStatsGP;
+var maxLegendHeight;
+var maxLegendDivHeight;
+var printCount = 0;
+var storageName = 'esrijsapi_mapmarks';
+//create global layers lookup
+var mapLayers = [];
+var mapLayerIds = [];
+
+require([
+    'esri/map',
+    "esri/dijit/OverviewMap",
+    "esri/SnappingManager",
+    "esri/dijit/HomeButton",
+    "esri/dijit/LocateButton",
+    "esri/dijit/Measurement",
+    "esri/dijit/Bookmarks",
+    'esri/layers/ArcGISTiledMapServiceLayer',
+    "esri/dijit/Search",
+    "esri/dijit/Popup",
+    'esri/dijit/PopupTemplate',
+    'esri/graphic',
+    'esri/geometry/Multipoint',
+    'esri/symbols/PictureMarkerSymbol',
+    "esri/geometry/webMercatorUtils",
+    'esri/tasks/GeometryService',
+    "esri/tasks/PrintTask",
+    "esri/tasks/PrintParameters",
+    "esri/tasks/PrintTemplate",
+    "esri/tasks/LegendLayer",
+    'esri/SpatialReference',
+    'esri/geometry/Extent',
+    "esri/config",
+    "esri/urlUtils",
+    "esri/request",
+    "dojo/_base/array",
+    "dojo/_base/lang",
+    "dojo/keys",
+    "dojo/cookie",
+    "dojo/has",
+    'dojo/dom',
+    "dojo/dom-class",
+    "dojo/dom-construct",
+    'dojo/on',
+    'dojo/domReady!'
+], function (
+    Map,
+    OverviewMap,
+    SnappingManager,
+    HomeButton,
+    LocateButton,
+    Measurement,
+    Bookmarks,
+    ArcGISTiledMapServiceLayer,
+    Search,
+    Popup,
+    PopupTemplate,
+    Graphic,
+    Multipoint,
+    PictureMarkerSymbol,
+    webMercatorUtils,
+    GeometryService,
+    PrintTask,
+    PrintParameters,
+    PrintTemplate,
+    LegendLayer,
+    SpatialReference,
+    Extent,
+    esriConfig,
+    urlUtils,
+    esriRequest,
+    array,
+    lang,
+    keys,
+    cookie,
+    has,
+    dom,
+    domClass,
+    domConstruct,
+    on
+) {
+
+    var useLocalStorage = supports_local_storage();
+    var popup = new Popup({
+    }, domConstruct.create("div"));
+    //popup dark theme
+    //domClass.add(popup.domNode, "dark");
+    domClass.add(popup.domNode);
+
+    map = new Map('mapDiv', {
+        basemap: 'gray',
+        center: sbra.globals.mapCenter,
+        spatialReference: 26917,
+        zoom: 9,
+        logo: false,
+        minZoom: 9,
+        infoWindow: popup
+    });
+
+    //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("https://glcwra.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+    esriConfig.defaults.geometryService = new GeometryService("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+    esri.config.defaults.io.corsEnabledServers.push("https://gis.wim.usgs.gov/");
+
+    const home = new HomeButton({
+        map: map
+    }, "homeButton");
+    home.startup();
+
+    const geoLocate = new LocateButton({
+        map: map
+    }, "locateButton");
+    geoLocate.startup();
+
+    const measurement = new Measurement({
+        map: map,
+        advancedLocationUnits: true
+    }, dom.byId("measurementDiv"));
+    measurement.startup();
+    //bookmarks code////////////////////////////////////////////////////////////
+
+    // Save new bookmarks in local storage, fall back to a cookie
+    // If a cookie is used, it expires after a week
+    // Look for stored bookmarks
+    var bmJSON;
+    if ( useLocalStorage ) {
+        bmJSON = window.localStorage.getItem(storageName);
+    } else {
+        bmJSON = dojo.cookie(storageName);
+    }
+
+    // Load bookmarks
+    // Fall back to a single bookmark if no cookie
+    if ( bmJSON && bmJSON !== 'null' && bmJSON.length > 4) {
+        console.log('cookie: ', bmJSON, bmJSON.length);
+        var bmarks = dojo.fromJson(bmJSON);
+        array.forEach(bmarks, function(b) {
+            sbra.bookmarks.push(b);
+        });
+    } else {
+        console.log('no stored bookmarks...');
+    }
+
+    function refreshBookmarks() {
+        if ( useLocalStorage ) {
+            //create new array with only user created bookmarks, to save to local storage.
+            var appBMs = [];
+            array.forEach(sbra.bookmarks, function (bm){
+                if (bm.userCreated === false){
+                    appBMs.push(bm.id);
+                }
+            });
+            var bmStorageArray = sbra.bookmarks.slice();
+            for(var i = 0; i < bmStorageArray.length; i++) {
+                var obj = bmStorageArray[i];
+
+                if(appBMs.indexOf(obj.id) !== -1) {
+                    bmStorageArray.splice(i, 1);
+                    i--;
+                    //!!!IMPORTANT:If adding another permanent bookmark (non-user defined) may need another i decrement.
+                }
+            }
+            console.log(bmStorageArray);
+            var x = JSON.stringify(bmStorageArray);
+            window.localStorage.setItem(storageName, x);
+        } else {
+            var exp = 7; // number of days to persist the cookie
+            cookie(storageName, dojo.toJson(sbra.bookmarks), {
+                expires: exp
+            });
+        }
+    }
+
+    function removeUserBookmarks () {
+        if ( useLocalStorage ) {
+            // Remove from local storage
+            window.localStorage.removeItem(storageName);
+        } else {
+            // Remove cookie
+            dojo.cookie(storageName, null, { expires: -1 });
+        }
+        //creates list of user defined bookmarks
+        var userBMs = [];
+        array.forEach(sbra.bookmarks, function (bm){
+            if (bm.userCreated === true){
+                userBMs.push(bm.id);
+            }
+        });
+        //removes user bookmarks from the sbra.bookmarks array
+        for(var i = 0; i < sbra.bookmarks.length; i++) {
+            var obj = sbra.bookmarks[i];
+
+            if(userBMs.indexOf(obj.id) !== -1) {
+                sbra.bookmarks.splice(i, 1);
+                i--;
+                //!!!IMPORTANT:If adding another permanent bookmark (non-user defined) may need another i decrement.
+            }
+        }
+        array.forEach(userBMs, function (bmID) {
+            $('#' + bmID).remove();
+        });
+        //alert('Bookmarks Removed.');
+    }
+
+    // source for supports_local_storage function:
+    // http://diveintohtml5.org/detect.html
+    function supports_local_storage() {
+        try {
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } catch( e ){
+            return false;
+        }
+    }
+    //end bookmarks code ////////////////////////////////////////////////
+
+    const overviewMapDijit = new OverviewMap({
+        map: map,
+        attachTo: "bottom-right"
+    });
+    overviewMapDijit.startup();
+
+    var utmCoords = $('<tr class="esriMeasurementTableRow" id="utmCoords"><td><span>UTM17</span></td><td class="esriMeasurementTableCell"> <span id="utmX" dir="ltr">UTM X</span></td> <td class="esriMeasurementTableCell"> <span id="utmY" dir="ltr">UTM Y</span></td></tr>');
+    $('.esriMeasurementResultTable').append(utmCoords);
+
+    //following block forces map size to override problems with default behavior
+    $(window).resize(function () {
+        if ($("#legendCollapse").hasClass('in')) {
+            maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
+            $('#legendElement').css('height', maxLegendHeight);
+            $('#legendElement').css('max-height', maxLegendHeight);
+            maxLegendDivHeight = ($('#legendElement').height()) - parseInt($('#legendHeading').css("height").replace('px',''));
+            $('#legendDiv').css('max-height', maxLegendDivHeight);
+        }
+        else {
+            $('#legendElement').css('height', 'initial');
+        }
+    });
+
+    function showShareModal() {
+        $('#shareModal').modal('show');
+        //create array to store layer info(on hold for now - timing issues with setting layer vis on load
+        //var layerInfo = [];
+        ////retrieve layer info to record current visibility and opacity settings, push to array
+        //array.forEach(mapLayerIds, function(id) {
+        //    var layer = map.getLayer(id);
+        //    layerInfo.push({id: layer.id, visible: layer.visible, opacity:  layer.opacity});
+        //});
+        //retrieve current map extent (in map's spatial reference)
+        var currentMapExtent = map.extent;
+        //create a URL query string with extent
+        var shareQueryString = "?xmax=" + currentMapExtent.xmax.toString() + "&xmin=" + currentMapExtent.xmin.toString() + "&ymax=" + currentMapExtent.ymax.toString() + "&ymin=" + currentMapExtent.ymin.toString();
+        var encodedShareQueryString = "%3Fxmax=" + currentMapExtent.xmax.toString() + "%26xmin=" + currentMapExtent.xmin.toString() + "%26ymax=" + currentMapExtent.ymax.toString() + "%26ymin=" + currentMapExtent.ymin.toString();
+        //var cleanURL = document.location.href;
+        //below line for local testing only. replace with above line for production
+        var cleanURL = "https://glcwra.wim.usgs.gov/SBRA/";
+        var shareURL = cleanURL + shareQueryString;
+        var encodedShareURL = cleanURL + encodedShareQueryString;
+        console.log("Share URL is:" + shareURL);
+        $("#showFullLinkButton").click(function(){
+            $("#fullShareURL").html('<span id="fullLinkLabel" class="label label-default"><span class="glyphicon glyphicon-link"></span> Full link</span><br><textarea style="margin-bottom: 10px; cursor: text" class="form-control"  rows="3" readonly>' + shareURL + '</textarea>');
+        });
+
+        $("#showShortLinkButton").click(function(){
+            $.ajax({
+                dataType: 'json',
+                type: 'GET',
+                url: 'https://api-ssl.bitly.com/v3/shorten?access_token=e1a16076cc8470c65419920156e0ae2c4f77850f&longUrl='+ encodedShareURL,
+                headers: {'Accept': '*/*'},
+                success: function (data) {
+                    var bitlyURL = data.data.url;
+                    $("#bitlyURL").html('<span class="label label-default"><span class="glyphicon glyphicon-link"></span> Bitly link</span><code>' + bitlyURL + '</code>');
+                },
+                error: function (error) {
+                    $("#bitlyURL").html('<i class="fa fa-exclamation-triangle"></i> An error occurred retrieving shortened Bitly URL');
+
+                }
+            });
+        });
+    }
+
+    $('#shareNavButton').click(function(){
+        showShareModal();
+    });
+
+    function showPrintModal() {
+        $('#printModal').modal('show');
+    }
+
+    $('#printNavButton').click(function(){
+        showPrintModal();
+    });
+
+    function showBookmarkModal() {
+        $('#bookmarkModal').modal('show');
+    }
+
+    $('#addBookmarkButton').click(function(){
+        showBookmarkModal();
+    });
+
+    $('#printExecuteButton').click(function () {
+        $(this).button('loading');
+        printMap();
+    });
+    //captures the enter key being pressed to print map
+    $("#print-title-form").on("keypress", function (e) {
+        if (e.keyCode == 13) {
+            $('#printExecuteButton').button('loading');
+            printMap();
+        }
+    });
+    $('#bookmarkSaveButton').click(function () {
+        saveUserBookmark();
+    });
+    //captures the enter key being pressed to save bookmark
+    $("#bookmark-title-form").on("keypress", function (e) {
+        if (e.keyCode == 13) {
+            saveUserBookmark();
+        }
+    });
+
+    $('#bookmarkDismissButton').click(function () {
+        $("#bmAlert").hide();
+    });
+
+    //displays map scale on map load
+    on(map, "load", function() {
+        var scale =  map.getScale().toFixed(0);
+        $('#scale')[0].innerHTML = addCommas(scale);
+        var initMapCenter = webMercatorUtils.webMercatorToGeographic(map.extent.getCenter());
+        $('#latitude').html(initMapCenter.y.toFixed(4));
+        $('#longitude').html(initMapCenter.x.toFixed(4));
+        mapReady();
+    });
+    //displays map scale on scale change (i.e. zoom level)
+    on(map, "zoom-end", function () {
+        var scale =  map.getScale().toFixed(0);
+        $('#scale')[0].innerHTML = addCommas(scale);
+    });
+
+    //updates lat/lng indicator on mouse move. does not apply on devices w/out mouse. removes "map center" label
+    on(map, "mouse-move", function (cursorPosition) {
+        $('#mapCenterLabel').css("display", "none");
+        if (cursorPosition.mapPoint !== null) {
+            var geographicMapPt = webMercatorUtils.webMercatorToGeographic(cursorPosition.mapPoint);
+            $('#latitude').html(geographicMapPt.y.toFixed(4));
+            $('#longitude').html(geographicMapPt.x.toFixed(4));
+        }
+    });
+    //updates lat/lng indicator to map center after pan and shows "map center" label.
+    on(map, "pan-end", function () {
+        //displays latitude and longitude of map center
+        $('#mapCenterLabel').css("display", "inline");
+        var geographicMapCenter = webMercatorUtils.webMercatorToGeographic(map.extent.getCenter());
+        $('#latitude').html(geographicMapCenter.y.toFixed(4));
+        $('#longitude').html(geographicMapCenter.x.toFixed(4));
+    });
+
+    var nationalMapBasemap = new ArcGISTiledMapServiceLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer', {visible: false});
+    map.addLayer(nationalMapBasemap);
+    //on clicks to swap basemap. visibility toggling is required for nat'l map b/c it is not technically a basemap, but a tiled layer.
+    on(dom.byId('btnStreets'), 'click', function () {
+        map.setBasemap('streets');
+        nationalMapBasemap.setVisibility(false);
+    });
+    on(dom.byId('btnSatellite'), 'click', function () {
+        map.setBasemap('satellite');
+        nationalMapBasemap.setVisibility(false);
+    });
+    on(dom.byId('btnGray'), 'click', function () {
+        map.setBasemap('gray');
+        nationalMapBasemap.setVisibility(false);
+    });
+    on(dom.byId('btnOSM'), 'click', function () {
+        map.setBasemap('osm');
+        nationalMapBasemap.setVisibility(false);
+    });
+    on(dom.byId('btnTopo'), 'click', function () {
+        map.setBasemap('topo');
+        nationalMapBasemap.setVisibility(false);
+    });
+    on(dom.byId('btnNatlMap'), 'click', function () {
+        nationalMapBasemap.setVisibility(true);
+    });
+
+    //search widget used for geosearch
+    var search = new Search({
+        map: map
+    }, "geosearch");
+    search.startup();
+    //close geoserach modal when search result is selectec
+    on(search,'search-results', function(e) {
+        $('#geosearchModal').modal('hide');
+    });
+
+    function printMap() {
+        var printParams = new PrintParameters();
+        printParams.map = map;
+        var template = new PrintTemplate();
+        template.exportOptions = {
+            width: 500,
+            height: 400,
+            dpi: 300
+        };
+        ////5 lines below get zoom level and set the zoomFactor for the specific layout template (mainly for graticule)
+        var mapZoomLevel = map.getZoom();
+        var zoomFactor = "";
+        if (mapZoomLevel >= 9 ){zoomFactor = "9";}
+        if (mapZoomLevel >= 11) {zoomFactor = "11";}
+        if (mapZoomLevel >= 15) {zoomFactor = "15";}
+        template.showAttribution = false;
+        template.format = "PDF";
+        //custom template stored on AGS server instance at C:\Program Files\ArcGIS\Server\Templates\ExportWebMapTemplates
+        template.layout = "Letter ANSI A LandscapeGLCWRA" + zoomFactor;
+        template.preserveScale = false;
+        var legendLayer = new LegendLayer();
+        legendLayer.layerId = "normalized";
+        legendLayer.subLayerIds = [0];
+
+        var userTitle = $("#printTitle").val();
+        //if user does not provide title, use default. otherwise apply user title
+        if (userTitle === "") {
+            template.layoutOptions = {
+                "titleText": "Saginaw Bay Restoration Assessment - Provisional Data",
+                "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
+                "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
+                "legendLayers": [legendLayer]
+            };
+        } else {
+            template.layoutOptions = {
+                "titleText": userTitle + " - Provisional Data",
+                "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
+                "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
+                "legendLayers": [legendLayer]
+            };
+        }
+        var docTitle = template.layoutOptions.titleText;
+        printParams.template = template;
+
+        var printMap = new PrintTask("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task");
+        printMap.execute(printParams, printDone, printError);
+
+        function printDone(event) {
+            printCount++;
+            var printJobMarkup = $('<p><label>' + printCount + ': </label>&nbsp;&nbsp;<a href="'+ event.url +'" target="_blank">' + docTitle +' </a></p>');
+            //$("#print-form").append(printJob);
+            $("#printJobsDiv").find("p.toRemove").remove();
+            $("#printModalBody").append(printJobMarkup);
+            $("#printTitle").val("");
+            $("#printExecuteButton").button('reset');
+        }
+
+        function printError(event) {
+            alert("Sorry, an unclear print error occurred. Please try refreshing the application to fix the problem");
+            $("#printExecuteButton").button('reset');
+        }
+    }
+    function saveUserBookmark () {
+
+        //jQuery selector variable assignment for sidebar
+        var bookmarkTitle = $("#bookmarkTitle");
+        var currentMapExtentJSON = map.extent.toJson();
+        var userBookmarkTitle = bookmarkTitle.val();
+
+        if (userBookmarkTitle.length > 0 ){
+
+            var userBookmarkID = userBookmarkTitle.toLowerCase().replace(/ /g, '-');
+
+            currentMapExtentJSON.name = userBookmarkTitle;
+            currentMapExtentJSON.id = userBookmarkID;
+            currentMapExtentJSON.userCreated = true;
+            sbra.bookmarks.push(currentMapExtentJSON);
+
+            var bmDeleteID = userBookmarkID + "_delete";
+            var userBookmarkButton = $('<tr id="'+ userBookmarkID +'"><td  class="bookmarkTitle td-bm">'+ userBookmarkTitle +'</td><td class="text-right text-nowrap"> <button id="'+ bmDeleteID + '" class="btn btn-xs btn-warning bookmarkDelete" data-toggle="tooltip" data-placement="top" > <span class="glyphicon glyphicon-remove"></span> </button> </td> </tr>');
+            $("#bookmarkList").append(userBookmarkButton);
+
+            $('#' + bmDeleteID).confirmation({
+                placement: "left",
+                title: "Delete this bookmark?",
+                btnOkLabel: "Yes",
+                btnCancelLabel: "Cancel",
+                popout: true,
+                onConfirm: function() {
+                    $("#" + userBookmarkID).remove();
+
+                    for(var i = 0; i < sbra.bookmarks.length; i++) {
+                        var obj = sbra.bookmarks[i];
+
+                        if(userBookmarkID.indexOf(obj.id) !== -1) {
+                            sbra.bookmarks.splice(i, 1);
+                        }
+                    }
+                    refreshBookmarks();
+                }
+            });
+
+            bookmarkTitle.val("");
+            refreshBookmarks();
+            $("#bmAlert").hide();
+            $("#bookmarkModal").modal('hide');
+
+        } else {
+            $("#bmAlert").show();
+        }
+    }
+    function mapReady(){
+        var urlSiteObject = esri.urlToObject(document.location.href);
+        if (urlSiteObject.query){
+            var urlExtent = new Extent(parseFloat(urlSiteObject.query.xmin), parseFloat(urlSiteObject.query.ymin), parseFloat(urlSiteObject.query.xmax), parseFloat(urlSiteObject.query.ymax), new SpatialReference({"wkid":102100}) );
+            map.setExtent(urlExtent);
+            //to be used if layer visibility is asked for as part of share (has some timing challenges)
+            //var urlVisLayers = urlSiteObject.query.visLayers;
+            //var visLayersArray = urlVisLayers.split(',');
+            var arrivalURL = document.location.href;
+            var cleanURL = arrivalURL.substring(0, arrivalURL.indexOf('?'));
+            history.pushState(null, "", cleanURL);
+        }
+    }
+    // Show modal dialog; handle legend sizing (both on doc ready)
+    $(document).ready(function(){
+        function showGeosearchModal() {
+            $('#geosearchModal').modal('show');
+        }
+        $('#geosearchNav').click(function(){
+            showGeosearchModal();
+        });
+        function showAboutModal () {
+            $('#aboutModal').modal('show');
+        }
+        $('#aboutNav').click(function(){
+            showAboutModal();
+        });
+
+        $('#scaleAlertClose').click(function() {
+            $('#parcelSelectScaleAlert').hide();
+        });
+
+        $('#goToScale').click(function() {
+            $('#parcelSelectScaleAlert').hide();
+            var parcelsScale = map.getLayer('parcelsFeat').minScale;
+            map.setScale(parcelsScale);
+        });
+
+        $("#IEwarnContinue").click(function () {
+            $('#disclaimerModal').modal({backdrop: 'static'});
+            $('#disclaimerModal').modal('show');
+        });
+
+        if(navigator.userAgent.indexOf('MSIE')!==-1 || navigator.appVersion.indexOf('Trident/') > 0){
+            $("#IEwarningModal").modal('show');
+        } else {
+            $('#disclaimerModal').modal({backdrop: 'static'});
+            $('#disclaimerModal').modal('show');
+        }
+
+        //collapse legend on load if small screen (saves real estate)
+        if ( $(window).width() < 767) {
+            $('#legendCollapse').addClass('collapse');
+        }
+
+        $("#html").niceScroll();
+        //jQuery selector variable assignment for sidebar
+        var sidebar = $("#sidebar");
+        sidebar.niceScroll();
+        sidebar.scroll(function () {
+           $("#sidebar").getNiceScroll().resize();
+        });
+
+        /////logic dealing with legend resizing
+        //jQuery selector variable assignment for legendCollapse control
+        var legendCollapse =  $('#legendCollapse');
+        //jQuery selector variable assignment for legendElement div
+        var legendElement = $('#legendElement');
+        //jQuery selector variable assignment for legendDiv div
+        var legendDiv= $('#legendDiv');
+
+        $("#legendDiv").niceScroll({autohidemode: false});
+        //set maxLegendHeight var to 90% height of map div
+        maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
+
+        //set max heights for all to the maxLegendHeight
+        legendElement.css('max-height', maxLegendHeight);
+        legendCollapse.css('max-height', maxLegendHeight);
+        legendDiv.css('max-height', maxLegendHeight);
+
+        //listener for when legend collapse is opened
+        legendCollapse.on('shown.bs.collapse', function () {
+            //show the legend label, which may have been hidden if screen was small
+            $('#legendLabel').show();
+
+            //establish maxLegendHeight var as 90% of total map div height, updated in case window size changed since load
+           maxLegendHeight =  ($('#mapDiv').height()) * 0.90;
+
+            ///order, top to bottom: legendElement > legendCollapse > legendDiv
+            //set max heights for all to the new maxLegendHeight
+            legendElement.css('max-height', maxLegendHeight);
+            legendCollapse.css('max-height', maxLegendHeight);
+            legendDiv.css('max-height', maxLegendHeight);
+
+            legendElement.css('height', maxLegendHeight);
+            legendCollapse.css('height', maxLegendHeight);
+
+            maxLegendDivHeight = (legendElement.height()) - parseInt($('#legendHeading').css("height").replace('px',''));
+            legendDiv.css('height', maxLegendDivHeight);
+
+        });
+
+        legendCollapse.on('hide.bs.collapse', function () {
+           legendElement.css('height', 'initial');
+            if (window.innerWidth <= 767){
+                $('#legendLabel').hide();
+            }
+        });
+        //end legend logic
+
+        //jQuery selector for measurement tool control
+        var measurementCollapse = $('#measurementCollapse');
+        measurementCollapse.on('shown.bs.collapse', function () {
+            //show label when the collapse panel is expanded(for mobile, where label is hidden while collapsed)
+            $('#measureLabel').show();
+        });
+        measurementCollapse.on('hide.bs.collapse', function () {
+            //hide label on collapse if window is small (mobile)
+            if (window.innerWidth <= 767){
+                $('#measureLabel').hide();
+            }
+        });
+        //custom function for handling of show/hide alert divs
+        $(function(){
+            $("[data-hide]").on("click", function(){
+                $("." + $(this).attr("data-hide")).hide();
+            });
+        });
+        sbra.bookmarks.forEach(function(bm) {
+            if (bm.userCreated === false) {
+                var bookmarkButton = $('<tr id="'+ bm.id +'"><td class="bookmarkTitle td-bm">'+ bm.name +'</td><td class="text-right text-nowrap"></td> </tr>');
+                $("#bookmarkList").append(bookmarkButton);
+            } else {
+                var bmDeleteID = bm.id + "_delete";
+                var userBookmarkButton = $('<tr id="'+ bm.id +'"><td  class="bookmarkTitle td-bm">'+ bm.name +'</td><td class="text-right text-nowrap"> <button id="'+ bmDeleteID + '" class="btn btn-xs btn-warning bookmarkDelete" data-toggle="tooltip" data-placement="top" title="Delete bookmark"> <span class="glyphicon glyphicon-remove"></span> </button> </td> </tr>');
+                $("#bookmarkList").append(userBookmarkButton);
+
+                $('#' + bmDeleteID).confirmation({
+                    placement: "left",
+                    title: "Delete this bookmark?",
+                    btnOkLabel: "Yes",
+                    btnCancelLabel: "Cancel",
+                    popout: true,
+                    onConfirm: function() {
+                        $("#" + bm.id).remove();
+
+                        for(var i = 0; i < sbra.bookmarks.length; i++) {
+                            var obj = sbra.bookmarks[i];
+
+                            if(bm.id.indexOf(obj.id) !== -1) {
+                                sbra.bookmarks.splice(i, 1);
+                            }
+                        }
+                        refreshBookmarks();
+                    }
+                });
+
+
+            }
+        });
+        //need this style onclick because user bookmark buttons are appended to dom and event delegation blah blah
+        $("body").on('click', '.td-bm' ,function (){
+            var bookmarkID = this.parentNode.id;
+            sbra.bookmarks.forEach(function(bookmark) {
+                if (bookmark.id == bookmarkID){
+                    var bookmarkExtent = new Extent(bookmark.xmin, bookmark.ymin, bookmark.xmax, bookmark.ymax, new SpatialReference(bookmark.spatialReference) );
+                    //var extent = new Extent(-122.68,45.53,-122.45,45.60, new SpatialReference({ wkid:4326 }));
+                    map.setExtent(bookmarkExtent);
+                }
+            });
+        });
+
+        $('[data-toggle="tooltip"]').tooltip({delay: { show: 500, hide: 0 }});
+        $('#removeBookmarksButton').confirmModal({
+            confirmTitle     : 'Delete user bookmarks from memory',
+            confirmMessage   : 'This action will remove all user-defined bookmarks from local memory on your computer or device. Would you like to continue?',
+            confirmOk        : 'Yes, delete bookmarks',
+            confirmCancel    : 'Cancel',
+            confirmDirection : 'rtl',
+            confirmStyle     : 'primary',
+            confirmCallback  : removeUserBookmarks,
+            confirmDismiss   : true,
+            confirmAutoOpen  : false
+        });
+    });
+    require([
+        'esri/dijit/Legend',
+        'esri/tasks/locator',
+        'esri/tasks/query',
+        "esri/tasks/Geoprocessor",
+        "esri/tasks/FeatureSet",
+        'esri/tasks/GeometryService',
+        "esri/tasks/ProjectParameters",
+        'esri/tasks/QueryTask',
+        'esri/graphicsUtils',
+        'esri/geometry/Point',
+        "esri/toolbars/draw",
+        'esri/SpatialReference',
+        'esri/geometry/Extent',
+        'esri/layers/ArcGISDynamicMapServiceLayer',
+        'esri/layers/FeatureLayer',
+        "esri/layers/LabelLayer",
+        "esri/symbols/TextSymbol",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/renderers/SimpleRenderer",
+        "esri/Color",
+        "esri/dijit/Popup",
+        "esri/dijit/PopupTemplate",
+        "esri/InfoTemplate",
+        'dojo/query',
+        'dojo/dom'
+    ], function(
+        Legend,
+        Locator,
+        Query,
+        Geoprocessor,
+        FeatureSet,
+        GeometryService,
+        ProjectParameters,
+        QueryTask,
+        graphicsUtils,
+        Point,
+        Draw,
+        SpatialReference,
+        Extent,
+        ArcGISDynamicMapServiceLayer,
+        FeatureLayer,
+        LabelLayer,
+        TextSymbol,
+        SimpleFillSymbol,
+        SimpleLineSymbol,
+        SimpleRenderer,
+        Color,
+        Popup,
+        PopupTemplate,
+        InfoTemplate,
+        query,
+        dom
+    ) {
+        var legendLayers = [];
+        var customAreaDraw;
+        var clickSelectionActive = false;
+        var clickRemoveSelectionActive = false;
+        var drawCustomActive = false;
+        var customAreaSymbol;
+        var customAreaGraphic;
+        var customAreaParams = { "inputPoly":null };
+        var customAreaFeatureArray = [];
+
+        const mapServiceRoot= "https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/";
+        const geomService = new GeometryService("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+
+        const normRestorationIndexLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "normalized", visible:true} );
+        normRestorationIndexLayer.setVisibleLayers([4]);
+        mapLayers.push(normRestorationIndexLayer);
+        mapLayerIds.push(normRestorationIndexLayer.id);
+        legendLayers.push ({layer:normRestorationIndexLayer, title:" "});
+        normRestorationIndexLayer.inLegendLayers = true;
+
+        const dikesLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "dikes", visible:false, minScale:100000} );
+        dikesLayer.setVisibleLayers([16]);
+        mapLayers.push(dikesLayer);
+        mapLayerIds.push(dikesLayer.id);
+        dikesLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:dikesLayer, title: "Dikes"});
+
+        const degFlowlinesLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "degFlowlines", visible:false, minScale:100000} );
+        degFlowlinesLayer.setVisibleLayers([15]);
+        mapLayers.push(degFlowlinesLayer);
+        mapLayerIds.push(degFlowlinesLayer.id);
+        degFlowlinesLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:degFlowlinesLayer, title: "Degree flowlines"});
+
+        const culvertsLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "culverts", visible:false, minScale:100000} );
+        culvertsLayer.setVisibleLayers([14]);
+        mapLayers.push(culvertsLayer);
+        mapLayerIds.push(culvertsLayer.id);
+        culvertsLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:culvertsLayer, title: "Culverts"});
+
+        //////////////begin reference layers////////////////////////////////////
+
+        //disable shift-click to recenter since we are using shift click to remove features from selection
+        map.disableClickRecenter();
+
+        //instantiation of Draw element for custom area draw
+        customAreaDraw = new Draw(map);
+        //jQuery selector variable assignment for the draw custom area button
+        var drawCustom =  $('#drawCustom');
+
+        drawCustom.click(function(){
+            customAreaFeatureArray = [];
+            map.graphics.remove(customAreaGraphic);
+            $("#displayStats").prop('disabled', true);
+            $("#calculateStats").prop('disabled', true);
+            //clear the feature set
+            customAreaParams = { "inputPoly":null };
+            //if active, turn off. if not, turn on
+            if (drawCustomActive){
+                customAreaDraw.finishDrawing();
+                customAreaDraw.deactivate();
+               drawCustom.removeClass("active");
+               drawCustom.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw');
+                drawCustomActive = false;
+            } else if (!drawCustomActive) {
+               drawCustom.addClass("active");
+               drawCustom.html('<i class="fa fa-stop"></i>&nbsp;&nbsp;Stop drawing');
+                clickSelectionActive = false;
+                customAreaDraw.activate(Draw.POLYGON);
+                drawCustomActive = true;
+            }
+            //map.setMapCursor("auto");
+            //clickSelectionActive = false;
+            //customAreaDraw.activate(Draw.POLYGON);
+            //selectionToolbar.activate(Draw.POLYGON);
+        });
+
+
+        $('#clearSelection').click(function(){
+            map.graphics.remove(customAreaGraphic);
+            $("#displayStats").prop('disabled', true);
+            $("#calculateStats").prop('disabled', true);
+            //clear the feature set
+            customAreaParams = { "inputPoly":null };
+            customAreaFeatureArray = [];
+        });
+        zonalStatsGP = new Geoprocessor("https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/SBRAZonalStats/GPServer/SBRAZonalStats");
+        zonalStatsGP.setOutputSpatialReference({wkid:102100});
+        zonalStatsGP.on("execute-complete", displayCustomStatsResults);
+        $('#calculateStats').click(function () {
+            $(this).button('loading');
+            zonalStatsGP.execute(customAreaParams);
+        });
+        on(customAreaDraw, "DrawEnd", function (customAreaGeometry) {
+            //var symbol = new SimpleFillSymbol("none", new SimpleLineSymbol("dashdot", new Color([255,0,0]), 2), new Color([255,255,0,0.25]));
+            customAreaSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.5]));
+            customAreaGraphic = new Graphic(customAreaGeometry,customAreaSymbol);
+            customAreaGraphic.setAttributes({"ZONE_ID": 1});
+            map.graphics.add(customAreaGraphic);
+            customAreaDraw.deactivate();
+            drawCustom.removeClass("active");
+            drawCustom.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw');
+            drawCustomActive = false;
+            customAreaFeatureArray.push(customAreaGraphic);
+            var featureSet = new FeatureSet();
+            featureSet.features = customAreaFeatureArray;
+            //customAreaParams = { "inputPoly":featureSet };
+            customAreaParams = { "inputPoly":featureSet,  "zone_field": "ZONE_ID" };
+            $("#calculateStats").prop('disabled', false);
+            //zonalStatsGP.execute(customAreaParams);
+        });
+
+        function displayCustomStatsResults (customStatsResults) {
+            $("#calculateStats").button('reset');
+            var results = customStatsResults.results[0].value.features[0].attributes;
+            var zonalStatsTable = $('#zonalStatsTable');
+            zonalStatsTable.html('<tr><th>Mean </th><th>Standard Deviation</th><th>Max</th></tr>');
+            zonalStatsTable.append('<tr><td>' + results.MEAN.toFixed(4) + '</td><td>' + results.STD.toFixed(3) + '</td><td>' + results.MAX + '</td></tr>');
+            $('#zonalStatsModal').modal('show');
+        }
+
+        const studyAreaLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "studyArea", visible:true} );
+        studyAreaLayer.setVisibleLayers([0]);
+        mapLayers.push(studyAreaLayer);
+        mapLayerIds.push(studyAreaLayer.id);
+        legendLayers.push({layer:studyAreaLayer , title:" "});
+        studyAreaLayer.inLegendLayers = true;
+
+        const GLRIWetlandsLayer = new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "GLRIWetlands", visible:true, minScale: 100000, maxScale: 10000 } );
+        GLRIWetlandsLayer.setVisibleLayers([3]);
+        mapLayers.push(GLRIWetlandsLayer);
+        //mapLayerIds.push(GLRIWetlandsLayer.id);
+        legendLayers.push({layer:GLRIWetlandsLayer, title:" "});
+        GLRIWetlandsLayer.inLegendLayers = true;
+
+        const lakeLevelStationsLayer = new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "stations", visible:false } );
+        lakeLevelStationsLayer.setVisibleLayers([2]);
+        mapLayers.push(lakeLevelStationsLayer);
+        //mapLayerIds.push(GLRIWetlandsLayer.id);
+        legendLayers.push({layer:lakeLevelStationsLayer, title:" "});
+        lakeLevelStationsLayer.inLegendLayers = true;
+
+        var vegPopup = new InfoTemplate();
+        vegPopup.setTitle("Wetland Biological Integrity");
+        vegPopup.setContent( "<div style='text-align: left'><b>Wetland:</b>  ${name}<br/><b>Wetland class:</b> ${class}<br/><b>Veg IBI value:</b> ${VegIBI}<br/>More information available from the Great Lakes Coastal Wetlands Monitoring Program: <a href='http://greatlakeswetlands.org' target='_blank'>greatlakeswetlands.org</a></div>");
+
+        var vegLayer = new FeatureLayer("https://services5.arcgis.com/ed839pyDNWVlk9KK/ArcGIS/rest/services/CWMP_Vegetation_IBI/FeatureServer/0", {id: "veg", layerID: "veg", visible:false, mode: FeatureLayer.MODE_ONDEMAND, outFields: ["*"], infoTemplate: vegPopup});
+        vegLayer.id = "veg";
+        mapLayers.push(vegLayer);
+        mapLayerIds.push(vegLayer.id);
+        legendLayers.push({layer:vegLayer , title:"Wetland Biological Integrity (IBI score)"});
+        vegLayer.inLegendLayers = true;
+
+        var aerialsPopup = new PopupTemplate({
+            title: "U.S. ACOE Aerial Photo",
+            mediaInfos: [{
+                "title": "",
+                "caption": "Date & Time taken: {date}",
+                "type": "image",
+                "value": {
+                    sourceURL: "{imageUrl}",
+                    linkURL: "{imageUrl}"
+                }
+            }]
+        });
+        //const aerialsLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "reference/MapServer", {id: "aerials", visible:false} );
+        //aerialsLayer.setVisibleLayers([2]);
+        var aerialsLayer = new FeatureLayer(mapServiceRoot + "SBRA/MapServer/1", {id: "aerials", layerID: "aerials", visible:false, minScale:100000, mode: FeatureLayer.MODE_ONDEMAND, outFields: ["*"], infoTemplate: aerialsPopup});
+        aerialsLayer.id = "aerials";
+        mapLayers.push(aerialsLayer);
+        mapLayerIds.push(aerialsLayer.id);
+        legendLayers.push({layer:aerialsLayer , title:"US Army Corps of Engineers Aerial Photos "});
+        aerialsLayer.inLegendLayers = true;
+        ////end reference layers////////////////////////////////////////
+
+        ///parameters group
+        const landuseLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "landuse", visible:false} );
+        landuseLayer .setVisibleLayers([12]);
+        mapLayers.push(landuseLayer );
+        mapLayerIds.push(landuseLayer.id);
+        landuseLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:landuseLayer , title: "P6 - Landuse"});
+
+        const imperviousSurfacesLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "imperviousSurfaces", visible:false} );
+        imperviousSurfacesLayer.setVisibleLayers([11]);
+        mapLayers.push(imperviousSurfacesLayer);
+        mapLayerIds.push(imperviousSurfacesLayer.id);
+        imperviousSurfacesLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:imperviousSurfacesLayer, title: "P5 - Impervious Surfaces"});
+
+        const conservedLandsLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "conservedLands", visible:false} );
+        conservedLandsLayer.setVisibleLayers([10]);
+        mapLayers.push(conservedLandsLayer);
+        mapLayerIds.push(conservedLandsLayer.id);
+        conservedLandsLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:conservedLandsLayer, title: "P4 - Conserved Lands"});
+
+        const flowlineLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "flowline", visible:false} );
+        flowlineLayer.setVisibleLayers([9]);
+        mapLayers.push(flowlineLayer);
+        mapLayerIds.push(flowlineLayer.id);
+        flowlineLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:flowlineLayer, title: "P3 - Flowline"});
+
+        const wetsoilsLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "wetsoils", visible:false} );
+        wetsoilsLayer.setVisibleLayers([8]);
+        mapLayers.push(wetsoilsLayer);
+        mapLayerIds.push(wetsoilsLayer.id);
+        wetsoilsLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:wetsoilsLayer, title: "P2 - Wetsoils"});
+
+        const hydroperiodLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "hydroperiod", visible:false} );
+        hydroperiodLayer.setVisibleLayers([7]);
+        mapLayers.push(hydroperiodLayer);
+        mapLayerIds.push(hydroperiodLayer.id);
+        hydroperiodLayer.inLegendLayers = false;
+        //legendLayers.push ({layer:hydroperiodLayer, title: "P1 - Hydroperiod"});
+
+        const waterMaskLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "SBRA/MapServer", {id: "waterMask", visible:true, opacity: 0.75} );
+        waterMaskLayer.setVisibleLayers([6]);
+        mapLayers.push(waterMaskLayer);
+        mapLayerIds.push(waterMaskLayer.id);
+        waterMaskLayer.inLegendLayers = false;
+        legendLayers.push ({layer:waterMaskLayer, title: ""});
+        /////end parameters group
+
+        map.addLayers(mapLayers);
+
+        var projectParams = new ProjectParameters();
+
+        var outSR = new SpatialReference(26917);
+        measurement.on("measure-end", function(evt){
+            //$("#utmCoords").remove();
+            //var resultGeom = evt.geometry;
+            projectParams.geometries = [evt.geometry];
+            projectParams.outSR = outSR;
+            var absoluteX = (evt.geometry.x)*-1;
+            if ( absoluteX < 84 && absoluteX > 78 ){
+                geomService.project(projectParams, function (projectedGeoms){
+                    var utmResult = projectedGeoms[0];
+                    console.log(utmResult);
+                    var utmX = utmResult.x.toFixed(0);
+                    var utmY = utmResult.y.toFixed(0);
+                    $("#utmX").html(utmX);
+                    $("#utmY").html(utmY);
+                    //var utmCoords = $('<tr id="utmCoords"><td dojoattachpoint="pinCell"><span>UTM17</span></td> <td class="esriMeasurementTableCell"> <span id="utmX" dir="ltr">' + utmX + '</span></td> <td class="esriMeasurementTableCell"> <span id="utmY" dir="ltr">' + utmY + '</span></td></tr>');
+                    //$('.esriMeasurementResultTable').append(utmCoords);
+                });
+            } else {
+                //$("#utmX").html("out of zone");
+                $("#utmX").html('<span class="label label-danger">outside zone</span>');
+                //$("#utmY").html("out of zone");
+                $("#utmY").html('<span class="label label-danger">outside zone</span>');
+            }
+        });
+
+        //checks to see which layers are visible on load, sets toggle to active (this only works for dynamic layers. feature layer ids are in a separate array)
+        for(var j = 0; j < map.layerIds.length; j++) {
+            var layer = map.getLayer(map.layerIds[j]);
+            if (layer.visible) {
+                $("#" + layer.id).button('toggle');
+                $("#" + layer.id).find('i.checkBoxIcon').toggleClass('fa-check-square-o fa-square-o');
+            }
+        }
+        //repeat of the above layer vis check, this one for feature layers which only appear in the graphicsLayerIds array (thanks esri)
+        for(var j = 0; j < map.graphicsLayerIds.length; j++) {
+            var layer = map.getLayer(map.graphicsLayerIds[j]);
+            if (layer.visible) {
+                $("#" + layer.id).button('toggle');
+                $("#" + layer.id).find('i.checkBoxIcon').toggleClass('fa-check-square-o fa-square-o');
+            }
+        }
+        //toggles the visibility of corresponding layer and status of toggle button on click.
+        $("button.lyrTog").click(function(e) {
+            //toggle checkmark and button state
+            $(this).find('i.checkBoxIcon').toggleClass('fa-check-square-o fa-square-o');
+            $(this).button('toggle');
+            e.preventDefault();
+            e.stopPropagation();
+            var layer =   map.getLayer($(this).attr('id'));
+            ////layer toggle
+            if (layer.visible) {
+                layer.setVisibility(false);
+            } else {
+                layer.setVisibility(true);
+                //add to legend layers object if not there already(this prevents waiting for all to load on init)
+                //8/2/17 - commented out to prevent showing of legend for selected layers - BAD
+                if (layer.inLegendLayers === false) {
+                    legendLayers.push({layer: layer, title: " "});
+                    layer.inLegendLayers = true;
+                    legend.refresh();
+                }
+            }
+        });
+        //toggles the icons of the group toggle buttons on click
+        $('#hydroConditionGroup, #parametersGroup, #4scaleGroup').on('hide.bs.collapse', function () {
+            var groupToggleID = $(this)[0].id.replace('Group', '');
+            $(("#"+ groupToggleID)).find('i.checkBoxIcon').toggleClass('fa-check-square-o fa-square-o');
+            $(("#"+ groupToggleID)).find('i.chevron').toggleClass('fa-chevron-right fa-chevron-down');
+
+            var buttonGroupID = $(this).attr('id') + "Buttons";
+            $("#" + buttonGroupID).button('toggle');
+
+        });
+        $('#hydroConditionGroup, #parametersGroup, #4scaleGroup').on('show.bs.collapse', function () {
+            var groupToggleID = $(this)[0].id.replace('Group', '');
+            $(("#"+ groupToggleID)).find('i.checkBoxIcon').toggleClass('fa-check-square-o fa-square-o');
+            $(("#"+ groupToggleID)).find('i.chevron').toggleClass('fa-chevron-right fa-chevron-down');
+        });
+
+        $(".zoomto").hover(function (event) {
+
+            $(".zoomDialog").remove();
+            var layerToChange = this.id.replace("zoom", "");
+            var zoomDialogMarkup = $('<div class="zoomDialog"><label class="zoomClose pull-right">X</label><br><div class="list-group"><a href="#" id="zoomscale" class="list-group-item lgi-zoom zoomscale">Zoom to scale</a> <a id="zoomcenter" href="#" class="list-group-item lgi-zoom zoomcenter">Zoom to center</a><a id="zoomextent" href="#" class="list-group-item lgi-zoom zoomextent">Zoom to extent</a></div></div>');
+            $("body").append(zoomDialogMarkup);
+
+            $(".zoomDialog").css('left', event.clientX-80);
+            $(".zoomDialog").css('top', event.clientY-5);
+
+            $(".zoomDialog").mouseleave(function() {
+                $(".zoomDialog").remove();
+            });
+
+            $(".zoomClose").click(function() {
+                $(".zoomDialog").remove();
+            });
+
+            $('#zoomscale').click(function (e) {
+                //logic to zoom to layer scale
+                var layerMinScale = map.getLayer(layerToChange).minScale;
+                if (layerMinScale > 0 ){map.setScale(layerMinScale);} else {console.log("No minimum scale for layer.")};
+            });
+
+            $("#zoomcenter").click(function (e){
+                //logic to zoom to layer center
+                //var layerCenter = map.getLayer(layerToChange).fullExtent.getCenter();
+                //map.centerAt(layerCenter);
+                var dataCenter = new Point(sbra.globals.mapCenter, new SpatialReference({wkid:4326}));
+                map.centerAt(dataCenter);
+            });
+
+            $("#zoomextent").click(function (e){
+                //logic to zoom to layer extent
+                var layerExtent = map.getLayer(layerToChange).fullExtent;
+                var extentProjectParams = new ProjectParameters();
+                extentProjectParams.outSR = new SpatialReference(102100);
+                extentProjectParams.geometries = [layerExtent];
+                geomService.project(extentProjectParams, function(projectedExtentObj) {
+                    var projectedExtent = projectedExtentObj[0];
+                    map.setExtent(projectedExtent, new SpatialReference({ wkid:102100 }));
+                });
+            });
+        });
+
+
+        $(".opacity").hover(function (event) {
+
+            $(".opacitySlider").remove();
+            var layerToChange = this.id.replace("opacity", "");
+            var currOpacity = map.getLayer(layerToChange).opacity;
+            var sliderMarkup = $('<div class="opacitySlider"><label id="opacityValue">Opacity: ' + currOpacity + '</label><label class="opacityClose pull-right">X</label><input id="slider" type="range"></div>');
+            $("body").append(sliderMarkup);
+
+            var slider = $("#slider");
+            slider[0].value = currOpacity*100;
+            $(".opacitySlider").css('left', event.clientX-180);
+            $(".opacitySlider").css('top', event.clientY-5);
+            $(".opacitySlider").mouseleave(function() {
+                $(".opacitySlider").remove();
+            });
+            $(".opacityClose").click(function() {
+                $(".opacitySlider").remove();
+            });
+            slider.change(function(event) {
+                //get the value of the slider with this call
+                var o = (slider[0].value)/100;
+                console.log("o: " + o);
+                $("#opacityValue").html("Opacity: " + o);
+                map.getLayer(layerToChange).setOpacity(o);
+                //here I am just specifying the element to change with a "made up" attribute (but don't worry, this is in the HTML specs and supported by all browsers).
+                //var e = '#' + $(this).attr('data-wjs-element');
+                //$(e).css('opacity', o)
+            });
+        });
+        var legend = new Legend({
+            map: map,
+            layerInfos: legendLayers
+        }, "legendDiv");
+        legend.refresh(legendLayers);
+        legend.startup();
+    });//end of require statement containing legend building code
+});
+
