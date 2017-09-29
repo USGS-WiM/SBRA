@@ -811,7 +811,7 @@ require([
         var drawCustom =  $('#drawCustom');
 
         drawCustom.click(function(){
-
+            customAreaFeatureArray = [];
             map.graphics.remove(customAreaGraphic);
             $("#displayStats").prop('disabled', true);
             $("#calculateStats").prop('disabled', true);
@@ -867,7 +867,7 @@ require([
             var featureSet = new FeatureSet();
             featureSet.features = customAreaFeatureArray;
             //customAreaParams = { "inputPoly":featureSet };
-            customAreaParams = { "in_zone_data":featureSet,  "zone_field": "ZONE_ID" };
+            customAreaParams = { "inputPoly":featureSet,  "zone_field": "ZONE_ID" };
             $("#calculateStats").prop('disabled', false);
             //zonalStatsGP.execute(customAreaParams);
         });
@@ -910,7 +910,7 @@ require([
         vegLayer.id = "veg";
         mapLayers.push(vegLayer);
         mapLayerIds.push(vegLayer.id);
-        legendLayers.push({layer:vegLayer , title:""});
+        legendLayers.push({layer:vegLayer , title:"Wetland Biological Integrity (IBI score)"});
         vegLayer.inLegendLayers = true;
 
         var aerialsPopup = new PopupTemplate({
@@ -1046,6 +1046,7 @@ require([
             } else {
                 layer.setVisibility(true);
                 //add to legend layers object if not there already(this prevents waiting for all to load on init)
+                //8/2/17 - commented out to prevent showing of legend for selected layers - BAD
                 if (layer.inLegendLayers === false) {
                     legendLayers.push({layer: layer, title: " "});
                     layer.inLegendLayers = true;
@@ -1148,6 +1149,7 @@ require([
             map: map,
             layerInfos: legendLayers
         }, "legendDiv");
+        legend.refresh(legendLayers);
         legend.startup();
     });//end of require statement containing legend building code
 });
