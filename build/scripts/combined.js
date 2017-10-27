@@ -778,14 +778,14 @@ require([
         //if user does not provide title, use default. otherwise apply user title
         if (userTitle === "") {
             template.layoutOptions = {
-                "titleText": "Saginaw Bay Restoration Assessment - Provisional Data",
+                "titleText": "Saginaw Bay Restoration Assessment",
                 "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
                 "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
                 "legendLayers": [legendLayer]
             };
         } else {
             template.layoutOptions = {
-                "titleText": userTitle + " - Provisional Data",
+                "titleText": userTitle,
                 "authorText" : "Saginaw Bay Restoration Assessment (SBRA)",
                 "copyrightText": "This page was produced by the SBRA web application at glcwra.wim.usgs.gov/sbra",
                 "legendLayers": [legendLayer]
