@@ -741,13 +741,61 @@ require([
     });
 
     //search widget used for geosearch
-    var search = new Search({
-        map: map
-    }, "geosearch");
-    search.startup();
+    //var search = new Search({
+        //map: map
+    //}, "geosearch");
+    //search.startup();
     //close geoserach modal when search result is selectec
-    on(search,'search-results', function(e) {
-        $('#geosearchModal').modal('hide');
+    //on(search,'search-results', function(e) {
+        //$('#geosearchModal').modal('hide');
+    //});
+
+    // create search_api widget in element "geosearch"
+    search_api.create( "geosearch", {
+        on_result: function(o) {
+            // what to do when a location is found
+            // o.result is geojson point feature of location with properties
+
+            // zoom to location
+            require(["esri/geometry/Extent"], function(Extent) {
+                var noExtents = ["GNIS_MAJOR", "GNIS_MINOR", "ZIPCODE", "AREACODE"];
+                var noExtentCheck = noExtents.indexOf(o.result.properties["Source"])
+                if (noExtentCheck == -1) {
+                    map.setExtent(
+                        new esri.geometry.Extent({
+                            xmin: o.result.properties.LonMin,
+                            ymin: o.result.properties.LatMin,
+                            xmax: o.result.properties.LonMax,
+                            ymax: o.result.properties.LatMax,
+                            spatialReference: {"wkid":4326}
+                        }),
+                        true
+                    );
+                } else {
+                    //map.setCenter();
+                    require( ["esri/geometry/Point"], function(Point) {
+                        map.centerAndZoom(
+                            new Point( o.result.properties.Lon, o.result.properties.Lat ),
+                            12
+                        );
+                    });
+                }
+
+            });
+
+        },
+        "include_usgs_sw": true,
+        "include_usgs_gw": true,
+        "include_usgs_sp": true,
+        "include_usgs_at": true,
+        "include_usgs_ot": true,
+        "include_huc2": true,
+        "include_huc4": true,
+        "include_huc6": true,
+        "include_huc8": true,
+        "include_huc10": true,
+        "include_huc12": true
+
     });
 
     function printMap() {
