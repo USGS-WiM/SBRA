@@ -26,6 +26,8 @@
     "wiredep": "^1.4.4"
   },
   "dependencies": {
+    "bower": "^1.8.12",
+    "jquery": "3.6.0",
     "path": "^0.12.7"
   }
 }
